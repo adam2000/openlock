@@ -26,7 +26,8 @@
 #define INPUT_1 't'
 #define INPUT_2 'u'
 
-#define TIMER0_RELOAD 0xda    // 416,6 us @ 20MHz
+#define SER_BAUD 103
+
 #define TIMER2_RELOAD 0x31		// 1 ms @ 8MHz
 
 void sleep_ms(unsigned long ms);

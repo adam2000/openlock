@@ -13,7 +13,9 @@ volatile char c;
 
 // soft uart stuff
 #define BAUD_RATE		9200
-unsigned char rdata;            // holds the serial byte that was received
+volatile unsigned char rdata;            // holds the serial byte that was received
+volatile unsigned char rfid_bits[40 + 1];
+volatile unsigned char rfid_byte_index;
 
 void main(void) {
 	OSCCONbits.SCS = 0x10;			// System Clock Select bits = External oscillator
@@ -30,9 +32,21 @@ void main(void) {
 	TRIS_RX = 1;
 
 	timer_2 = 0;
+	rfid_byte_index = 0;
 
 	// set up interrupt and timers
 	RCONbits.IPEN = 1;
+
+	// timer 0
+	T0CONbits.T0PS0 = 0;
+	T0CONbits.T0PS1 = 0;
+	T0CONbits.T0PS2 = 0;	// prescaler 1:2
+	T0CONbits.TMR0ON = 0;
+	T0CONbits.T08BIT = 1;	// use timer0 8-bit counter
+	T0CONbits.T0CS = 0;		// internal clock source
+	T0CONbits.PSA = 0;		// enable timer0 prescaler
+	T0CONbits.TMR0ON = 1;	// enable timer0
+	INTCONbits.T0IE = 0;
 
 // timer 2
 	T2CONbits.T2CKPS0 = 1;
@@ -42,8 +56,8 @@ void main(void) {
 	T2CONbits.TOUTPS2 = 0;
 	T2CONbits.TOUTPS3 = 1;
 	IPR1bits.TMR2IP = 0;		// low priority
-	T2CONbits.TMR2ON = 1;
-	PIE1bits.TMR2IE = 1;
+//	T2CONbits.TMR2ON = 1;
+//	PIE1bits.TMR2IE = 1;
 	PIR1bits.TMR2IF = 1;
 
 	INTCONbits.PEIE = 1;
@@ -52,19 +66,26 @@ void main(void) {
 	LED_PIN = 0;
 	RELAY_1_PIN = 0;
 	RELAY_2_PIN = 0;
-	sleep_ms(2000);
+//	sleep_ms(2000);
 //	sleep_ms(2);
-	led_debug();
+//	led_debug();
 	my_usart_open();
 
-	// enable rfid serial input	
+	// enable rfid serial input
+	
 	INTCONbits.INT0IE = 1;
 
 	while (1) {
+		if (rfid_byte_index >= 5) {
+			rfid_bits[40] = '\0';
+			usart_puts(rfid_bits);
+			rfid_byte_index = 0;
+		}
 #ifdef DEBUG
-		LED_PIN = RELAY_1_PIN | RELAY_2_PIN | INPUT_1_PIN | INPUT_2_PIN;
+//		LED_PIN = RELAY_1_PIN | RELAY_2_PIN | INPUT_1_PIN | INPUT_2_PIN;
 #endif
-//		TX_PIN = RFID_IN_PIN;
+/*
+		TX_PIN = RFID_IN_PIN;
 		if (INPUT_1_PIN) {
 			usart_putc(INPUT_1);
 			usart_puts("\n");
@@ -80,6 +101,7 @@ void main(void) {
 			RELAY_1_PIN = 0;
 			RELAY_2_PIN = 0;
 		}
+*/
 	}
 }
 
@@ -96,8 +118,11 @@ void sleep_ms(unsigned long ms) {
 static void high_priority_isr(void) __interrupt 1 {
 	if (INTCONbits.INT0IF) {
 		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
-		INTCONbits.INT0IE = 0;	// disable until stopbit received
+		
+		INTCONbits.GIE = 0;	// disable until stopbit received
 		receive_serial_byte();
+		INTCONbits.GIE = 1;	// re-enable
+		
 		usart_putc(rdata);
 		usart_puts("\n");
 	}
@@ -133,8 +158,8 @@ static void low_priority_isr(void) __interrupt 2 {
 }
 
 void my_usart_open() {
-	SPBRG = 207;					// 8MHz => 9600 baud
-//	SPBRG = 16;					// 8MHz => 115200 baud
+//	SPBRG = 207;					// 8MHz => 9600 baud
+	SPBRG = 16;					// 8MHz => 115200 baud
 	TXSTAbits.BRGH = 1;	// (1 = high speed)
 	TXSTAbits.SYNC = 0;	// (0 = asynchronous)
 	BAUDCONbits.BRG16 = 1;
@@ -173,32 +198,30 @@ void led_debug() {
 
 // software uart
 void receive_serial_byte(void) {
-  unsigned char i, sleep_timer;
-  unsigned char d[8];
+  unsigned char i;
 
-	sleep_timer = 0;
+	INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+	TMR0L = (256 - SER_BAUD - 23);
 
-	while (sleep_timer++ < 104);								// gives 157,6 uS ~1,5 baud - should be 156,250000000005
+	while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
 
   for (i = 0; i < 8; i++) {
 		// receive 8 serial bits, LSB first
-		d[i] = !RFID_IN_PIN;
-		
-		sleep_timer = 0;
-
-		if (i < 7) {
-			while (sleep_timer++ < 69);              // gives 104 uS ~1 baud - should be 104,16666666667
+		if (RFID_IN_PIN) {
+			rfid_bits[rfid_byte_index + (i * 8)] = '1';
 		}
+		else {
+			rfid_bits[rfid_byte_index + (i * 8)] = '0';
+		}
+//		rfid_bits[rfid_byte_index + (i * 8)] = !RFID_IN_PIN;
+		
+		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+		TMR0L -= SER_BAUD;
+		while (!INTCONbits.TMR0IF);
   }
+	rfid_byte_index++;
 
-	// convert to byte
-	rdata = 0;
-  for (i = 0; i < 8; i++) {
-		rdata |= (d[i] << i);
-	}
-  
-	sleep_timer = 0;
-  while (sleep_timer++ < 59);              // wait for baud
-
-	INTCONbits.INT0IE = 1;
+	INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+	TMR0L -= SER_BAUD;
+	while (!INTCONbits.TMR0IF);
 }
