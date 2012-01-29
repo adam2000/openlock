@@ -13,11 +13,14 @@ volatile char c;
 
 // soft uart stuff
 #define BAUD_RATE		9200
-volatile unsigned char rdata;            // holds the serial byte that was received
-volatile unsigned char rfid_bits[40 + 1];
+//#define RFID_LENGTH 11
+#define RFID_LENGTH 1
+volatile unsigned char rfid[RFID_LENGTH];
 volatile unsigned char rfid_byte_index;
 
 void main(void) {
+	unsigned char i;
+	unsigned char buf[RFID_LENGTH + 1];
 	OSCCONbits.SCS = 0x10;			// System Clock Select bits = External oscillator
 	OSCCONbits.IRCF = 0x7;		// Internal Oscillator Frequency Select bits 8 MHz (INTOSC drives clock directly)
 
@@ -35,7 +38,11 @@ void main(void) {
 	rfid_byte_index = 0;
 
 	// set up interrupt and timers
+
+	// enable rfid serial input
+	INTCONbits.INT0IE = 1;
 	RCONbits.IPEN = 1;
+	INTCON2bits.INTEDG0 = 0;	// int on falling edge
 
 	// timer 0
 	T0CONbits.T0PS0 = 0;
@@ -60,9 +67,6 @@ void main(void) {
 //	PIE1bits.TMR2IE = 1;
 	PIR1bits.TMR2IF = 1;
 
-	INTCONbits.PEIE = 1;
-	INTCONbits.GIE = 1;	/* Enable Global interrupts   */	
-
 	LED_PIN = 0;
 	RELAY_1_PIN = 0;
 	RELAY_2_PIN = 0;
@@ -71,14 +75,28 @@ void main(void) {
 //	led_debug();
 	my_usart_open();
 
-	// enable rfid serial input
-	
-	INTCONbits.INT0IE = 1;
+	INTCONbits.PEIE = 1;
+	INTCONbits.GIE = 1;	/* Enable Global interrupts   */	
 
 	while (1) {
-		if (rfid_byte_index >= 5) {
-			rfid_bits[40] = '\0';
-			usart_puts(rfid_bits);
+		if (rfid_byte_index >= RFID_LENGTH) {
+			// when finished receiving...
+			for (i = 0; i < RFID_LENGTH; i++) {
+				sprintf(buf, "%d\n", rfid[i]);
+				usart_puts(buf);
+				usart_putc(rfid[i]);
+				usart_putc('\n');
+
+/*
+					if (rfid[j] && (1 << i)) {
+						usart_putc('1');
+					}
+					else {
+						usart_putc('0');
+					}
+*/
+			}
+			usart_putc('\n');
 			rfid_byte_index = 0;
 		}
 #ifdef DEBUG
@@ -116,15 +134,35 @@ void sleep_ms(unsigned long ms) {
 }
 
 static void high_priority_isr(void) __interrupt 1 {
+	unsigned char rdata;            // holds the serial byte that was received
+  unsigned char i;
+
 	if (INTCONbits.INT0IF) {
-		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
-		
 		INTCONbits.GIE = 0;	// disable until stopbit received
-		receive_serial_byte();
+		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+		TMR0L = (256 - SER_BAUD - 23);
+
+		while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
+
+		rdata = 0;
+	  for (i = 0; i < 8; i++) {
+			// receive 8 serial bits, LSB first
+			rdata |= !RFID_IN_PIN << i;
+		
+			INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+			TMR0L -= SER_BAUD;
+			while (!INTCONbits.TMR0IF);
+	  }
+		rfid[rfid_byte_index++] = rdata;
+
+		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+		TMR0L -= SER_BAUD;
+		while (!INTCONbits.TMR0IF);
+
 		INTCONbits.GIE = 1;	// re-enable
 		
-		usart_putc(rdata);
-		usart_puts("\n");
+//		usart_putc(rdata);
+//		usart_puts("\n");
 	}
 }
 
@@ -194,34 +232,4 @@ void led_debug() {
 	sleep_ms(80);
 	LED_PIN = 0;
 	sleep_ms(20);
-}
-
-// software uart
-void receive_serial_byte(void) {
-  unsigned char i;
-
-	INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
-	TMR0L = (256 - SER_BAUD - 23);
-
-	while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
-
-  for (i = 0; i < 8; i++) {
-		// receive 8 serial bits, LSB first
-		if (RFID_IN_PIN) {
-			rfid_bits[rfid_byte_index + (i * 8)] = '1';
-		}
-		else {
-			rfid_bits[rfid_byte_index + (i * 8)] = '0';
-		}
-//		rfid_bits[rfid_byte_index + (i * 8)] = !RFID_IN_PIN;
-		
-		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
-		TMR0L -= SER_BAUD;
-		while (!INTCONbits.TMR0IF);
-  }
-	rfid_byte_index++;
-
-	INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
-	TMR0L -= SER_BAUD;
-	while (!INTCONbits.TMR0IF);
 }

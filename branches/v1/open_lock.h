@@ -38,6 +38,3 @@ static void low_priority_isr(void) __interrupt 2;
 void my_usart_open();
 
 void led_debug();
-
-// software uart
-void receive_serial_byte(void);
