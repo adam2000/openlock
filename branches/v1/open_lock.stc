@@ -67,5 +67,4 @@ scope.ch1 = "portc6"
 
 
 break e 0x8
-break e 0x5c4
-break e 0x654
+break e 0x1330
