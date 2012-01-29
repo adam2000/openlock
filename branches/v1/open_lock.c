@@ -138,6 +138,7 @@ static void high_priority_isr(void) __interrupt 1 {
   unsigned char i;
 
 	if (INTCONbits.INT0IF) {
+		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
 		INTCONbits.GIE = 0;	// disable until stopbit received
 		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
 		TMR0L = (256 - SER_BAUD - 23);
