@@ -8,7 +8,6 @@
 # and load this file from it. Something like this:
 # ----------- myproject.stc ---------------
 # load s mycode.cod
-# frequency 12000000
 # load c netlist.stc
 # -----------------------------------------
 # You can then just load this new file:
@@ -16,6 +15,7 @@
 # and use netlist.stc whenever you save from the breadboard.
 #
 
+frequency 8000000
 
 # Processor position:
 module library libgpsim_modules
@@ -67,10 +67,5 @@ scope.ch1 = "portc6"
 
 
 break e 0x8
-break e 0x5ae
-break e 0x65e
-#break e 0x5c6
-#break e 0x648
-#break e 0x658
-#break e 0x65e
-#break e 0x68a
+break e 0x5c4
+break e 0x654
