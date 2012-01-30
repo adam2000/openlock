@@ -41,8 +41,8 @@ led.xpos = 240
 led.ypos = 132
 
 module load usart U1
-U1.rxbaud = 9600
-U1.txbaud = 9600
+U1.rxbaud = 115200
+U1.txbaud = 115200
 U1.xpos = 168
 U1.ypos = 360
 
