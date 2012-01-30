@@ -1,11 +1,14 @@
 #include <pic18fregs.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <usart.h>
 #include "config.h"
 #include "open_lock.h"
 
 #define DEBUG
+
+#define RFID_LENGTH 10
 
 // Global variables
 unsigned long timer_2;
@@ -13,14 +16,11 @@ volatile char c;
 
 // soft uart stuff
 #define BAUD_RATE		9200
-//#define RFID_LENGTH 11
-#define RFID_LENGTH 1
-volatile unsigned char rfid[RFID_LENGTH];
+volatile unsigned char rfid[RFID_LENGTH + 1];
 volatile unsigned char rfid_byte_index;
 
 void main(void) {
 	unsigned char i;
-	unsigned char buf[RFID_LENGTH + 1];
 	OSCCONbits.SCS = 0x10;			// System Clock Select bits = External oscillator
 	OSCCONbits.IRCF = 0x7;		// Internal Oscillator Frequency Select bits 8 MHz (INTOSC drives clock directly)
 
@@ -37,12 +37,16 @@ void main(void) {
 	timer_2 = 0;
 	rfid_byte_index = 0;
 
-	// set up interrupt and timers
+	LED_PIN = 0;
+	RELAY_1_PIN = 0;
+	RELAY_2_PIN = 0;
 
-	// enable rfid serial input
-	INTCONbits.INT0IE = 1;
+	// set up interrupt and timers
 	RCONbits.IPEN = 1;
+	
+	INTCONbits.INT0IE = 1;
 	INTCON2bits.INTEDG0 = 0;	// int on falling edge
+	INTCONbits.INT0IF = 0;
 
 	// timer 0
 	T0CONbits.T0PS0 = 0;
@@ -63,63 +67,41 @@ void main(void) {
 	T2CONbits.TOUTPS2 = 0;
 	T2CONbits.TOUTPS3 = 1;
 	IPR1bits.TMR2IP = 0;		// low priority
-//	T2CONbits.TMR2ON = 1;
-//	PIE1bits.TMR2IE = 1;
+	T2CONbits.TMR2ON = 1;
+	PIE1bits.TMR2IE = 1;
 	PIR1bits.TMR2IF = 1;
-
-	LED_PIN = 0;
-	RELAY_1_PIN = 0;
-	RELAY_2_PIN = 0;
-//	sleep_ms(2000);
-//	sleep_ms(2);
-//	led_debug();
-	my_usart_open();
 
 	INTCONbits.PEIE = 1;
 	INTCONbits.GIE = 1;	/* Enable Global interrupts   */	
 
+	sleep_ms(2000);
+	led_debug();
+
+	my_usart_open();
+
 	while (1) {
 		if (rfid_byte_index >= RFID_LENGTH) {
 			// when finished receiving...
-			for (i = 0; i < RFID_LENGTH; i++) {
-				sprintf(buf, "%d\n", rfid[i]);
-				usart_puts(buf);
-				usart_putc(rfid[i]);
-				usart_putc('\n');
-
-/*
-					if (rfid[j] && (1 << i)) {
-						usart_putc('1');
-					}
-					else {
-						usart_putc('0');
-					}
-*/
-			}
+			INTCONbits.INT0IE = 0;		// disable rfid interrupt
+			rfid[RFID_LENGTH] = '\0';
+			usart_puts(rfid);
 			usart_putc('\n');
+			if (strcmp(rfid, "0000000000") == 0) {
+				door_open();
+			}
 			rfid_byte_index = 0;
+			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
 		}
-#ifdef DEBUG
-//		LED_PIN = RELAY_1_PIN | RELAY_2_PIN | INPUT_1_PIN | INPUT_2_PIN;
-#endif
-/*
-		TX_PIN = RFID_IN_PIN;
 		if (INPUT_1_PIN) {
+			// door bell
+			INTCONbits.INT0IE = 0;		// disable rfid interrupt
 			usart_putc(INPUT_1);
 			usart_puts("\n");
+			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
 		}
 		if (INPUT_2_PIN) {
-			// open door
-			usart_puts(INPUT_2);
-			usart_puts("\n");
-			RELAY_1_PIN = 1;
-			RELAY_2_PIN = 1;
+			door_open();
 		}
-		else {
-			RELAY_1_PIN = 0;
-			RELAY_2_PIN = 0;
-		}
-*/
 	}
 }
 
@@ -141,14 +123,14 @@ static void high_priority_isr(void) __interrupt 1 {
 		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
 		INTCONbits.GIE = 0;	// disable until stopbit received
 		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
-		TMR0L = (256 - SER_BAUD - 23);
+		TMR0L = (256 - SER_BAUD - 29);
 
 		while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
 
 		rdata = 0;
 	  for (i = 0; i < 8; i++) {
 			// receive 8 serial bits, LSB first
-			rdata |= !RFID_IN_PIN << i;
+			rdata |= RFID_IN_PIN << i;
 		
 			INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
 			TMR0L -= SER_BAUD;
@@ -157,13 +139,11 @@ static void high_priority_isr(void) __interrupt 1 {
 		rfid[rfid_byte_index++] = rdata;
 
 		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
-		TMR0L -= SER_BAUD;
+		TMR0L -= SER_BAUD - 65;
 		while (!INTCONbits.TMR0IF);
 
+		INTCONbits.INT0IF = 0;
 		INTCONbits.GIE = 1;	// re-enable
-		
-//		usart_putc(rdata);
-//		usart_puts("\n");
 	}
 }
 
@@ -172,6 +152,9 @@ static void low_priority_isr(void) __interrupt 2 {
 		PR2 = TIMER2_RELOAD;		// 1 ms delay at 8 MHz
 		PIR1bits.TMR2IF = 0;
 		timer_2++;		
+#ifdef DEBUG
+		LED_PIN = RELAY_1_PIN | RELAY_2_PIN | INPUT_1_PIN | INPUT_2_PIN;
+#endif
 	}
 	if (usart_drdy()) {
 		LED_PIN = 1;
@@ -233,4 +216,14 @@ void led_debug() {
 	sleep_ms(80);
 	LED_PIN = 0;
 	sleep_ms(20);
+}
+
+void door_open() {
+	// open door
+	RELAY_1_PIN = 1;
+	RELAY_2_PIN = 1;
+	sleep_ms(2000);
+
+	RELAY_1_PIN = 0;
+	RELAY_2_PIN = 0;
 }
