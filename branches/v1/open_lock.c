@@ -9,12 +9,15 @@
 #define DEBUG
 
 #define RFID_LENGTH 10
+#define COMMAND_LENGTH 10
 #define MAX_USERS 20
 
 // soft uart stuff
 #define BAUD_RATE		9200
 volatile unsigned char rfid[RFID_LENGTH + 1];
 volatile unsigned char rfid_byte_index;
+volatile unsigned char command[COMMAND_LENGTH + 1];
+volatile unsigned char command_index;
 
 volatile unsigned char users[MAX_USERS][RFID_LENGTH + 1];
 volatile unsigned char users_num;
@@ -22,7 +25,7 @@ volatile unsigned char users_rfid_byte_index;
 
 // Global variables
 unsigned long timer_2;
-volatile char c;
+volatile char c; //, last_c;
 
 void main(void) {
 	unsigned char i;
@@ -40,7 +43,9 @@ void main(void) {
 	TRIS_RX = 1;
 
 	timer_2 = 0;
+	command_index = 0;
 	rfid_byte_index = 0;
+	
 	users_rfid_byte_index = 0;
 	users_num = 0;
 
@@ -183,9 +188,22 @@ static void low_priority_isr(void) __interrupt 2 {
 */
 
 		// retransmit it
+//		last_c = c;
 		c = usart_getc();
 //		usart_putc(c);
 		
+		if (c == '\n') {
+			command[command_index] = '\0';	// null terminate it
+			command_index = 0;
+			usart_puts(command);
+		}
+		else {
+//			if (command_index < COMMAND_LENGTH) {
+				command[command_index] = c;
+//			}
+		}
+
+/*
 		switch (c) {
 			case RELAY_1_ON:
 				RELAY_1_PIN = 1;
@@ -206,14 +224,17 @@ static void low_priority_isr(void) __interrupt 2 {
 					usart_puts("***\n");
 				}
 				break;
-			case '\n':
+			case '#':
 				users[users_num][RFID_LENGTH] = '\0';
 				users_rfid_byte_index = 0;
 				users_num++;
 				break;
+			case '\n':
+				break;
 			default:
 				users[users_num][users_rfid_byte_index++] = c;
 		}
+*/
 		//INTCONbits.GIE = 1;	// re-enable
 	}
 }
