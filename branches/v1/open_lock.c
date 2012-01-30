@@ -9,15 +9,20 @@
 #define DEBUG
 
 #define RFID_LENGTH 10
-
-// Global variables
-unsigned long timer_2;
-volatile char c;
+#define MAX_USERS 20
 
 // soft uart stuff
 #define BAUD_RATE		9200
 volatile unsigned char rfid[RFID_LENGTH + 1];
 volatile unsigned char rfid_byte_index;
+
+volatile unsigned char users[MAX_USERS][RFID_LENGTH + 1];
+volatile unsigned char users_num;
+volatile unsigned char users_rfid_byte_index;
+
+// Global variables
+unsigned long timer_2;
+volatile char c;
 
 void main(void) {
 	unsigned char i;
@@ -36,6 +41,8 @@ void main(void) {
 
 	timer_2 = 0;
 	rfid_byte_index = 0;
+	users_rfid_byte_index = 0;
+	users_num = 0;
 
 	LED_PIN = 0;
 	RELAY_1_PIN = 0;
@@ -86,9 +93,13 @@ void main(void) {
 			rfid[RFID_LENGTH] = '\0';
 			usart_puts(rfid);
 			usart_putc('\n');
-			if (strcmp(rfid, "0000000000") == 0) {
-				door_open();
+
+			for (i = 0; i < users_num; i++) {
+				if (strcmp(rfid, users[i]) == 0) {
+					door_open();
+				}
 			}
+
 			rfid_byte_index = 0;
 			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
 		}
@@ -148,6 +159,7 @@ static void high_priority_isr(void) __interrupt 1 {
 }
 
 static void low_priority_isr(void) __interrupt 2 {
+	unsigned char counter;
 	if (PIR1bits.TMR2IF) {
 		PR2 = TIMER2_RELOAD;		// 1 ms delay at 8 MHz
 		PIR1bits.TMR2IF = 0;
@@ -157,10 +169,22 @@ static void low_priority_isr(void) __interrupt 2 {
 #endif
 	}
 	if (usart_drdy()) {
-		LED_PIN = 1;
+		//INTCONbits.GIE = 0;	// disable until stopbit received
+/*
+		usart_gets(users[users_num], RFID_LENGTH);
+		users[users_num][RFID_LENGTH] = '\0';
+		users_num++;
+
+		for (counter = 0; counter < users_num; counter++) {
+			usart_puts("***");
+			usart_puts(users[counter]);
+			usart_puts("***\n");
+		}
+*/
+
 		// retransmit it
 		c = usart_getc();
-		usart_putc(c);
+//		usart_putc(c);
 		
 		switch (c) {
 			case RELAY_1_ON:
@@ -175,7 +199,22 @@ static void low_priority_isr(void) __interrupt 2 {
 			case RELAY_2_OFF:
 				RELAY_2_PIN = 0;
 				break;
+			case 'x':
+				for (counter = 0; counter < users_num; counter++) {
+					usart_puts("\n***");
+					usart_puts(users[counter]);
+					usart_puts("***\n");
+				}
+				break;
+			case '\n':
+				users[users_num][RFID_LENGTH] = '\0';
+				users_rfid_byte_index = 0;
+				users_num++;
+				break;
+			default:
+				users[users_num][users_rfid_byte_index++] = c;
 		}
+		//INTCONbits.GIE = 1;	// re-enable
 	}
 }
 
