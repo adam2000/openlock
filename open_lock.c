@@ -10,7 +10,7 @@
 
 #define RFID_LENGTH 10
 #define COMMAND_LENGTH 10
-#define MAX_USERS 256
+#define MAX_USERS 20
 
 // soft uart stuff
 #define BAUD_RATE		9200
@@ -22,6 +22,11 @@ volatile unsigned char command_index;
 volatile unsigned char users[MAX_USERS][RFID_LENGTH + 1];
 volatile unsigned char users_num;
 volatile unsigned char users_rfid_byte_index;
+
+// command queue
+#define QUEUE_SIZE 256
+volatile unsigned int fifo_head, fifo_tail;
+volatile unsigned char fifo_buffer[QUEUE_SIZE];
 
 // Global variables
 unsigned char open_door_state;
@@ -287,3 +292,28 @@ void open_door() {
 	RELAY_1_PIN = 0;
 	RELAY_2_PIN = 0;
 }
+
+unsigned char fifo_in_use() {
+	return fifo_head - fifo_tail;
+}
+
+unsigned char fifo_put(unsigned char c) {
+	if (fifo_in_use() != QUEUE_SIZE) {
+		fifo_buffer[fifo_head++ % QUEUE_SIZE] = c;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+unsigned char fifo_get(unsigned char *c) {
+	if (fifo_in_use() != 0) {
+		*c = fifo_buffer[fifo_tail++ % QUEUE_SIZE];
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
