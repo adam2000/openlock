@@ -46,3 +46,6 @@ void my_usart_open();
 void led_debug();
 void open_door();
 
+unsigned char fifo_in_use();
+unsigned char fifo_put(unsigned char c);
+unsigned char fifo_get(unsigned char *c);
