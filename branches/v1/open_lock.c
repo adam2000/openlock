@@ -8,12 +8,7 @@
 
 #define DEBUG
 
-#define RFID_LENGTH 10
-#define COMMAND_LENGTH 10
-#define MAX_USERS 20
-
 // soft uart stuff
-#define BAUD_RATE		9200
 volatile unsigned char rfid[RFID_LENGTH + 1];
 volatile unsigned char rfid_byte_index;
 volatile unsigned char command[COMMAND_LENGTH + 1];

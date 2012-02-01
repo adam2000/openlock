@@ -32,6 +32,13 @@
 
 #define DOOR_OPEN_TIME 2000	// 2 sec
 
+#define RFID_LENGTH 10
+#define COMMAND_LENGTH 10
+#define MAX_USERS 20
+
+// soft uart stuff
+#define BAUD_RATE		9200
+
 #define SER_BAUD 103
 
 #define TIMER2_RELOAD 0x31		// 1 ms @ 8MHz

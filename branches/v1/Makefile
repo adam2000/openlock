@@ -28,7 +28,7 @@ open_lock: open_lock.c
 	--use-crt=crt0.o \
 	--use-non-free \
 	-p$(PROCESSOR) \
-	-Wl '-m' \
+	-Wl '-m -s18f2550.lkr' \
 	$<
 #	-I"./" uart.o \
 
