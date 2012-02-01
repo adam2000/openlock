@@ -19,7 +19,6 @@ volatile unsigned char users_num;
 volatile unsigned char users_rfid_byte_index;
 
 // command queue
-#define QUEUE_SIZE 256
 volatile unsigned int fifo_head, fifo_tail;
 volatile unsigned char fifo_buffer[QUEUE_SIZE];
 
