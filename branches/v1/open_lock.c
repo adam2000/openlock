@@ -96,37 +96,6 @@ void main(void) {
 	my_usart_open();
 
 	while (1) {
-		if (rfid_byte_index >= RFID_LENGTH) {
-			// when finished receiving...
-			INTCONbits.INT0IE = 0;		// disable rfid interrupt
-			rfid[RFID_LENGTH] = '\0';
-			usart_puts(rfid);
-			usart_puts("*\n");
-
-			for (i = 0; i < users_num; i++) {
-				if (strcmp(rfid, users[i]) == 0) {
-					open_door();
-					break;
-				}
-			}
-
-			rfid_byte_index = 0;
-			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
-		}
-		if (INPUT_1_PIN) {
-			// door bell
-			INTCONbits.INT0IE = 0;		// disable rfid interrupt
-			usart_putc(INPUT_1);
-			usart_puts("\n");
-			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
-		}
-		if (INPUT_2_PIN) {
-			open_door();
-		}
-		if (open_door_state) {
-			open_door();
-		}
-
 		if (fifo_get(&c)) {
 			if (c == '\n') {
 				// end of command
@@ -196,35 +165,6 @@ void sleep_ms(unsigned long ms) {
 }
 
 static void high_priority_isr(void) __interrupt 1 {
-	unsigned char rdata;            // holds the serial byte that was received
-  unsigned char i;
-
-	if (INTCONbits.INT0IF) {
-		INTCONbits.INT0IF = 0;				/* Clear Interrupt Flag */
-		INTCONbits.GIE = 0;						// disable until stopbit received
-		INTCONbits.TMR0IF = 0;				/* Clear the Timer Flag  */
-		TMR0L = (256 - SER_BAUD - 29);
-
-		while (!INTCONbits.TMR0IF);		// gives 156,5 uS ~1,5 baud - should be 156,250000000005
-
-		rdata = 0;
-	  for (i = 0; i < 8; i++) {
-			// receive 8 serial bits, LSB first
-			rdata |= RFID_IN_PIN << i;
-		
-			INTCONbits.TMR0IF = 0;			/* Clear the Timer Flag  */
-			TMR0L -= SER_BAUD;
-			while (!INTCONbits.TMR0IF);
-	  }
-		rfid[rfid_byte_index++] = rdata;
-
-		INTCONbits.TMR0IF = 0;				/* Clear the Timer Flag  */
-		TMR0L -= SER_BAUD - 65;
-		while (!INTCONbits.TMR0IF);
-
-		INTCONbits.INT0IF = 0;
-		INTCONbits.GIE = 1;						// re-enable
-	}
 }
 
 static void low_priority_isr(void) __interrupt 2 {
