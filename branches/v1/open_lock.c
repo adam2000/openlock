@@ -147,16 +147,10 @@ void main(void) {
 					// other commands
 					switch (command[0]) {					// only look at first character
 						case DUMP_RFIDS:
-							while (fifo_get(c)) {
-								usart_putc(c);
-							}
-
-/*
-							for (counter = 0; counter < users_num; counter++) {
-								usart_puts(users[counter]);
+							for (i = 0; i < users_num; i++) {
+								usart_puts(users[i]);
 								usart_puts("\n");
 							}
-*/
 							break;
 						case FLUSH_RFIDS:
 							users_num = 0;
