@@ -25,9 +25,12 @@
 #define RELAY_1_OFF 'r'
 #define RELAY_2_OFF 's'
 #define DUMP_RFIDS 'x'
+#define FLUSH_RFIDS 'z'
 
 #define INPUT_1 't'
 #define INPUT_2 'u'
+
+#define DOOR_OPEN_TIME 2000	// 2 sec
 
 #define SER_BAUD 103
 

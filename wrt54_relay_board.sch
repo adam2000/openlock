@@ -12697,6 +12697,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <part name="P+7" library="supply1" deviceset="+5V" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
 <part name="GND12" library="supply1" deviceset="GND" device=""/>
+<part name="R11" library="resistor" deviceset="R-EU_" device="0204/2V" value="10k"/>
 </parts>
 <sheets>
 <sheet>
@@ -12811,6 +12812,7 @@ In this library the device names are the same as the pin names of the symbols, t
 <instance part="IC3" gate="P" x="165.1" y="-63.5" rot="R90"/>
 <instance part="P+9" gate="1" x="152.4" y="-58.42"/>
 <instance part="GND12" gate="1" x="180.34" y="-68.58"/>
+<instance part="R11" gate="G$1" x="53.34" y="12.7" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -13285,10 +13287,8 @@ In this library the device names are the same as the pin names of the symbols, t
 <pinref part="IC1" gate="G$1" pin="RC7"/>
 <wire x1="99.06" y1="27.94" x2="104.14" y2="27.94" width="0.1524" layer="91"/>
 <wire x1="104.14" y1="27.94" x2="104.14" y2="12.7" width="0.1524" layer="91"/>
-<wire x1="104.14" y1="12.7" x2="22.86" y2="12.7" width="0.1524" layer="91"/>
-<wire x1="22.86" y1="12.7" x2="22.86" y2="0" width="0.1524" layer="91"/>
-<pinref part="JP5" gate="G$1" pin="3"/>
-<wire x1="22.86" y1="0" x2="27.94" y2="0" width="0.1524" layer="91"/>
+<pinref part="R11" gate="G$1" pin="1"/>
+<wire x1="58.42" y1="12.7" x2="104.14" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+5V" class="0">
@@ -13471,6 +13471,15 @@ In this library the device names are the same as the pin names of the symbols, t
 <pinref part="C7" gate="G$1" pin="1"/>
 <pinref part="IC3" gate="G$1" pin="V-"/>
 <wire x1="182.88" y1="-30.48" x2="180.34" y2="-30.48" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$39" class="0">
+<segment>
+<pinref part="JP5" gate="G$1" pin="3"/>
+<wire x1="22.86" y1="12.7" x2="22.86" y2="0" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="0" x2="27.94" y2="0" width="0.1524" layer="91"/>
+<pinref part="R11" gate="G$1" pin="2"/>
+<wire x1="48.26" y1="12.7" x2="22.86" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
