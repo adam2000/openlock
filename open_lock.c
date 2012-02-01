@@ -203,7 +203,7 @@ void sleep_ms(unsigned long ms) {
 
 static void high_priority_isr(void) __interrupt 1 {
 	unsigned char rdata;            // holds the serial byte that was received
-  unsigned char counter;
+  unsigned char i;
 
 	if (INTCONbits.INT0IF) {
 		INTCONbits.INT0IF = 0;				/* Clear Interrupt Flag */
@@ -214,9 +214,9 @@ static void high_priority_isr(void) __interrupt 1 {
 		while (!INTCONbits.TMR0IF);		// gives 156,5 uS ~1,5 baud - should be 156,250000000005
 
 		rdata = 0;
-	  for (counter = 0; counter < 8; counter++) {
+	  for (i = 0; i < 8; i++) {
 			// receive 8 serial bits, LSB first
-			rdata |= RFID_IN_PIN << counter;
+			rdata |= RFID_IN_PIN << i;
 		
 			INTCONbits.TMR0IF = 0;			/* Clear the Timer Flag  */
 			TMR0L -= SER_BAUD;
@@ -234,7 +234,6 @@ static void high_priority_isr(void) __interrupt 1 {
 }
 
 static void low_priority_isr(void) __interrupt 2 {
-	unsigned char counter;
 	unsigned char c;
 	if (PIR1bits.TMR2IF) {
 		PR2 = TIMER2_RELOAD;					// 1 ms delay at 8 MHz
