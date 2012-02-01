@@ -10,7 +10,7 @@
 
 #define RFID_LENGTH 10
 #define COMMAND_LENGTH 10
-#define MAX_USERS 20
+#define MAX_USERS 256
 
 // soft uart stuff
 #define BAUD_RATE		9200
@@ -104,6 +104,7 @@ void main(void) {
 			for (i = 0; i < users_num; i++) {
 				if (strcmp(rfid, users[i]) == 0) {
 					open_door();
+					break;
 				}
 			}
 
@@ -141,37 +142,37 @@ static void high_priority_isr(void) __interrupt 1 {
   unsigned char counter;
 
 	if (INTCONbits.INT0IF) {
-		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
-		INTCONbits.GIE = 0;	// disable until stopbit received
-		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+		INTCONbits.INT0IF = 0;				/* Clear Interrupt Flag */
+		INTCONbits.GIE = 0;						// disable until stopbit received
+		INTCONbits.TMR0IF = 0;				/* Clear the Timer Flag  */
 		TMR0L = (256 - SER_BAUD - 29);
 
-		while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
+		while (!INTCONbits.TMR0IF);		// gives 156,5 uS ~1,5 baud - should be 156,250000000005
 
 		rdata = 0;
 	  for (counter = 0; counter < 8; counter++) {
 			// receive 8 serial bits, LSB first
 			rdata |= RFID_IN_PIN << counter;
 		
-			INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+			INTCONbits.TMR0IF = 0;			/* Clear the Timer Flag  */
 			TMR0L -= SER_BAUD;
 			while (!INTCONbits.TMR0IF);
 	  }
 		rfid[rfid_byte_index++] = rdata;
 
-		INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
+		INTCONbits.TMR0IF = 0;				/* Clear the Timer Flag  */
 		TMR0L -= SER_BAUD - 65;
 		while (!INTCONbits.TMR0IF);
 
 		INTCONbits.INT0IF = 0;
-		INTCONbits.GIE = 1;	// re-enable
+		INTCONbits.GIE = 1;						// re-enable
 	}
 }
 
 static void low_priority_isr(void) __interrupt 2 {
 	unsigned char counter;
 	if (PIR1bits.TMR2IF) {
-		PR2 = TIMER2_RELOAD;		// 1 ms delay at 8 MHz
+		PR2 = TIMER2_RELOAD;					// 1 ms delay at 8 MHz
 		PIR1bits.TMR2IF = 0;
 		timer_2++;		
 #ifdef DEBUG
@@ -186,13 +187,13 @@ static void low_priority_isr(void) __interrupt 2 {
 			// end of command
 			command[command_index - 1] = '\0';	// null terminate it
 			command_index = 0;
-			if (strlen(command) > 1) {
+			if (strlen(command) == RFID_LENGTH) {
 				// add rfid
 				strcpy(users[users_num++], command);
 			}
 			else {
 				// other commands
-				switch (command[0]) {
+				switch (command[0]) {					// only look at first character
 					case DUMP_RFIDS:
 						for (counter = 0; counter < users_num; counter++) {
 							usart_puts(users[counter]);
@@ -233,6 +234,7 @@ static void low_priority_isr(void) __interrupt 2 {
 				usart_puts("overflow\n");		
 			}
 		}
+
 //		INTCONbits.GIE = 1;	// re-enable
 	}
 }
