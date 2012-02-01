@@ -56,6 +56,9 @@ void main(void) {
 	users_rfid_byte_index = 0;
 	users_num = 0;
 
+	fifo_head = 0;
+	fifo_tail = 0;
+
 	LED_PIN = 0;
 	RELAY_1_PIN = 0;
 	RELAY_2_PIN = 0;
