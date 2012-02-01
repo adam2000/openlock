@@ -31,7 +31,7 @@ volatile unsigned char fifo_buffer[QUEUE_SIZE];
 // Global variables
 unsigned char open_door_state;
 unsigned long timer_2;
-volatile unsigned char c; //, last_c;
+volatile unsigned char c;
 
 void main(void) {
 	unsigned char i;
@@ -102,10 +102,6 @@ void main(void) {
 	my_usart_open();
 
 	while (1) {
-//		fifo_get(&c);
-//		usart_putc(c);
-		usart_puts(".\n");
-
 		if (rfid_byte_index >= RFID_LENGTH) {
 			// when finished receiving...
 			INTCONbits.INT0IE = 0;		// disable rfid interrupt
@@ -135,6 +131,68 @@ void main(void) {
 		}
 		if (open_door_state) {
 			open_door();
+		}
+
+		if (fifo_get(&c)) {
+			if (c == '\n') {
+				// end of command
+				command[command_index - 1] = '\0';	// null terminate it
+				command_index = 0;
+				if (strlen(command) == RFID_LENGTH) {
+					// add rfid
+					strcpy(users[users_num++], command);
+//					fifo_put(c);
+				}
+				else {
+					// other commands
+					switch (command[0]) {					// only look at first character
+						case DUMP_RFIDS:
+							while (fifo_get(c)) {
+								usart_putc(c);
+							}
+
+/*
+							for (counter = 0; counter < users_num; counter++) {
+								usart_puts(users[counter]);
+								usart_puts("\n");
+							}
+*/
+							break;
+						case FLUSH_RFIDS:
+							users_num = 0;
+							break;
+						case OPEN_DOOR:
+							//open_door_state = 1;		// ERROR: does not ever return...
+							break;
+						case RELAY_1_ON:
+							RELAY_1_PIN = 1;
+							break;
+						case RELAY_2_ON:
+							RELAY_2_PIN = 1;
+							break;
+						case RELAY_1_OFF:
+							RELAY_1_PIN = 0;
+							break;
+						case RELAY_2_OFF:
+							RELAY_2_PIN = 0;
+							break;
+					}
+				}
+			
+			}
+			else {
+				// add character to command and check for overflow
+				if (command_index <= COMMAND_LENGTH) {
+					command[command_index] = c;
+					command_index++;
+				}
+				else {
+					command[COMMAND_LENGTH] = '\0';	// null terminate it
+					command_index = 0;
+					usart_puts("overflow\n");		
+				}
+			}
+
 		}
 	}
 }
@@ -193,8 +251,8 @@ static void low_priority_isr(void) __interrupt 2 {
 #endif
 	}
 	if (usart_drdy()) {
-		usart_puts("sad");
 //		INTCONbits.GIE = 0;	// disable until stopbit received
+
 		c = usart_getc();
 		fifo_put(c);
 		
