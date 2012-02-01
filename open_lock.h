@@ -38,7 +38,7 @@
 
 #define RFID_LENGTH 10
 #define COMMAND_LENGTH 10
-#define MAX_USERS 20
+#define MAX_USERS 100
 
 // soft uart stuff
 #define SER_BAUD 103
