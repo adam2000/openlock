@@ -199,6 +199,9 @@ static void low_priority_isr(void) __interrupt 2 {
 							usart_puts("\n");
 						}
 						break;
+					case FLUSH_RFIDS:
+						users_num = 0;
+						break;
 					case OPEN_DOOR:
 						//open_door_state = 1;		// ERROR: does not ever return...
 						break;
@@ -277,7 +280,7 @@ void open_door() {
 	// open door
 	RELAY_1_PIN = 1;
 	RELAY_2_PIN = 1;
-	sleep_ms(2000);
+	sleep_ms(DOOR_OPEN_TIME);
 
 	RELAY_1_PIN = 0;
 	RELAY_2_PIN = 0;

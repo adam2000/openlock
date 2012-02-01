@@ -1045,6 +1045,7 @@ design rules under a new name.</description>
 <element name="C6" library="capacitor-wima" package="C5B2.5" value="100nF" x="66.675" y="6.985" rot="R180"/>
 <element name="C7" library="capacitor-wima" package="C5B2.5" value="100nF" x="74.93" y="26.035" rot="R90"/>
 <element name="C8" library="capacitor-wima" package="C5B2.5" value="100nF" x="78.74" y="31.115" rot="R180"/>
+<element name="R11" library="resistor" package="0204V" value="10k" x="12.7" y="17.78" rot="R180"/>
 </elements>
 <signals>
 <signal name="GND" class="1">
@@ -1302,9 +1303,9 @@ design rules under a new name.</description>
 <wire x1="22.86" y1="24.13" x2="23.495" y2="23.495" width="1.016" layer="16"/>
 <wire x1="23.495" y1="23.495" x2="26.67" y2="23.495" width="1.016" layer="16"/>
 <wire x1="37.465" y1="23.495" x2="34.29" y2="23.495" width="1.016" layer="16"/>
-<wire x1="26.67" y1="23.495" x2="34.29" y2="23.495" width="0" layer="19" extent="16-16"/>
 <via x="26.67" y="23.495" extent="1-16" drill="0.6" diameter="1.6764"/>
 <via x="34.29" y="23.495" extent="1-16" drill="0.6" diameter="1.6764"/>
+<wire x1="26.67" y1="23.495" x2="34.29" y2="23.495" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="N$16">
 <contactref element="READER_SERIAL_DATA" pad="1"/>
@@ -1386,11 +1387,11 @@ design rules under a new name.</description>
 </signal>
 <signal name="N$25">
 <contactref element="IC1" pad="18"/>
-<contactref element="JP5" pad="3"/>
 <wire x1="16.51" y1="31.75" x2="19.05" y2="31.75" width="1.016" layer="16"/>
 <wire x1="19.05" y1="31.75" x2="19.05" y2="21.59" width="1.016" layer="16"/>
 <wire x1="19.05" y1="21.59" x2="15.24" y2="17.78" width="1.016" layer="16"/>
-<wire x1="15.24" y1="17.78" x2="5.08" y2="17.78" width="1.016" layer="16"/>
+<contactref element="R11" pad="1"/>
+<wire x1="15.24" y1="17.78" x2="13.97" y2="17.78" width="1.016" layer="16"/>
 </signal>
 <signal name="N$26">
 <via x="60.325" y="53.975" extent="1-16" drill="0.6" diameter="1.9304"/>
@@ -1462,10 +1463,10 @@ design rules under a new name.</description>
 <wire x1="73.025" y1="3.175" x2="78.105" y2="8.255" width="0.6096" layer="16"/>
 <wire x1="78.105" y1="8.255" x2="84.7725" y2="8.255" width="0.6096" layer="16"/>
 <wire x1="84.7725" y1="8.255" x2="85.09" y2="8.5725" width="0.6096" layer="16"/>
-<wire x1="81.28" y1="34.925" x2="81.28" y2="31.115" width="0" layer="19" extent="16-16"/>
 <via x="20.955" y="27.305" extent="1-16" drill="0.6" diameter="1.6764"/>
 <wire x1="26.67" y1="27.305" x2="24.765" y2="27.305" width="1.016" layer="16"/>
-<wire x1="24.765" y1="27.305" x2="20.955" y2="27.305" width="0" layer="19" extent="1-16"/>
+<wire x1="81.28" y1="34.925" x2="81.28" y2="31.115" width="0" layer="19" extent="16-16"/>
+<wire x1="20.955" y1="27.305" x2="24.765" y2="27.305" width="0" layer="19" extent="16-16"/>
 </signal>
 <signal name="N$28">
 <via x="60.325" y="47.625" extent="1-16" drill="0.6" diameter="1.9304"/>
@@ -1566,56 +1567,12 @@ design rules under a new name.</description>
 <signal name="N$38">
 <via x="24.765" y="27.305" extent="1-16" drill="0.6" diameter="1.6764"/>
 </signal>
+<signal name="N$39">
+<contactref element="JP5" pad="3"/>
+<contactref element="R11" pad="2"/>
+<wire x1="11.43" y1="17.78" x2="5.08" y2="17.78" width="1.016" layer="16"/>
+</signal>
 </signals>
-<errors>
-<approved hash="3,16,ebfa6f906912ed78"/>
-<approved hash="3,16,9a61961988d984a1"/>
-<approved hash="3,16,d398d909c6e650f1"/>
-<approved hash="3,16,30afd357d75e34a6"/>
-<approved hash="3,16,52d9db38c5c9d1c2"/>
-<approved hash="3,16,9b9697ee8af5868d"/>
-<approved hash="1,20,d26349034624dd44"/>
-<approved hash="1,20,0c634d03422d034d"/>
-<approved hash="1,20,1abd935d95a71c47"/>
-<approved hash="1,20,d77b459b4173d393"/>
-<approved hash="1,20,59f5a895ab865ae6"/>
-<approved hash="1,20,1ce23d823cf21d92"/>
-<approved hash="1,20,de7d451d46f0dd90"/>
-<approved hash="1,20,d7ac914c9474d294"/>
-<approved hash="1,20,c7ad414d447ac29a"/>
-<approved hash="1,20,027d431d42090369"/>
-<approved hash="1,20,dc7d471d4600dd60"/>
-<approved hash="1,20,c6bdc7ddc2c5c3a5"/>
-<approved hash="1,20,007d411d42f90399"/>
-<approved hash="1,20,deb3afd3aacbdbab"/>
-<approved hash="4,16,db93bab15bc2f3e9"/>
-<approved hash="4,16,e383bd4712d58dff"/>
-<approved hash="4,16,c5a8f3999cc2ebf9"/>
-<approved hash="4,16,be4d55ac8a63c461"/>
-<approved hash="4,16,b244b93e65204011"/>
-<approved hash="4,16,b043693c441a1f28"/>
-<approved hash="19,16,571ead4596a41fcd"/>
-<approved hash="4,16,121a06818b159c0d"/>
-<approved hash="19,16,2ffde09452ec07f1"/>
-<approved hash="19,16,40f76e9f5ce6e8fa"/>
-<approved hash="19,16,3cf1fdeec5e604f9"/>
-<approved hash="19,16,9ff45ced64e5a7fc"/>
-<approved hash="19,16,fac93f600768c2c1"/>
-<approved hash="19,16,5df69e95a69d65fe"/>
-<approved hash="5,16,c163e31d28b76101"/>
-<approved hash="5,16,0a622182588a0d96"/>
-<approved hash="19,16,1a4155ae58665b75"/>
-<approved hash="19,16,f3bb6fd271edf051"/>
-<approved hash="19,16,f5a65d1b3bb5797d"/>
-<approved hash="5,16,9c2d0551837c5a6a"/>
-<approved hash="4,16,70767442a5e95db5"/>
-<approved hash="4,16,5f58a6ac7c0a6db0"/>
-<approved hash="4,16,3598eb6526f13219"/>
-<approved hash="4,16,1720b1c95df510e1"/>
-<approved hash="4,16,1186c42cb5ac7c71"/>
-<approved hash="4,16,265de8e6213ade19"/>
-<approved hash="4,16,c029809a66cf3ef4"/>
-</errors>
 </board>
 </drawing>
 </eagle>
