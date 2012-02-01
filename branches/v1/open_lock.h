@@ -19,10 +19,13 @@
 #define TRIS_RX					TRISCbits.TRISC7
 
 // Protocol constants
+#define OPEN_DOOR 'o'
 #define RELAY_1_ON 'p'
 #define RELAY_2_ON 'q'
 #define RELAY_1_OFF 'r'
 #define RELAY_2_OFF 's'
+#define DUMP_RFIDS 'x'
+
 #define INPUT_1 't'
 #define INPUT_2 'u'
 
@@ -38,5 +41,5 @@ static void low_priority_isr(void) __interrupt 2;
 void my_usart_open();
 
 void led_debug();
-void door_open();
+void open_door();
 
