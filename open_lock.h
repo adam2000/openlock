@@ -18,6 +18,8 @@
 #define TRIS_TX					TRISCbits.TRISC6
 #define TRIS_RX					TRISCbits.TRISC7
 
+#define BAUD_RATE		9200
+
 // Protocol constants
 #define OPEN_DOOR 'o'
 #define RELAY_1_ON 'p'
@@ -32,13 +34,13 @@
 
 #define DOOR_OPEN_TIME 2000	// 2 sec
 
+#define QUEUE_SIZE 256
+
 #define RFID_LENGTH 10
 #define COMMAND_LENGTH 10
 #define MAX_USERS 20
 
 // soft uart stuff
-#define BAUD_RATE		9200
-
 #define SER_BAUD 103
 
 #define TIMER2_RELOAD 0x31		// 1 ms @ 8MHz
