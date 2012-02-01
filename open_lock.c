@@ -24,6 +24,7 @@ volatile unsigned char users_num;
 volatile unsigned char users_rfid_byte_index;
 
 // Global variables
+unsigned char open_door_state;
 unsigned long timer_2;
 volatile char c; //, last_c;
 
@@ -42,6 +43,7 @@ void main(void) {
 	TRIS_TX = 0;
 	TRIS_RX = 1;
 
+	open_door_state = 0;
 	timer_2 = 0;
 	command_index = 0;
 	rfid_byte_index = 0;
@@ -97,11 +99,11 @@ void main(void) {
 			INTCONbits.INT0IE = 0;		// disable rfid interrupt
 			rfid[RFID_LENGTH] = '\0';
 			usart_puts(rfid);
-			usart_putc('\n');
+			usart_puts("*\n");
 
 			for (i = 0; i < users_num; i++) {
 				if (strcmp(rfid, users[i]) == 0) {
-					door_open();
+					open_door();
 				}
 			}
 
@@ -116,7 +118,10 @@ void main(void) {
 			INTCONbits.INT0IE = 1;		// re-enable rfid interrupt
 		}
 		if (INPUT_2_PIN) {
-			door_open();
+			open_door();
+		}
+		if (open_door_state) {
+			open_door();
 		}
 	}
 }
@@ -133,7 +138,7 @@ void sleep_ms(unsigned long ms) {
 
 static void high_priority_isr(void) __interrupt 1 {
 	unsigned char rdata;            // holds the serial byte that was received
-  unsigned char i;
+  unsigned char counter;
 
 	if (INTCONbits.INT0IF) {
 		INTCONbits.INT0IF = 0;		/* Clear Interrupt Flag */
@@ -144,9 +149,9 @@ static void high_priority_isr(void) __interrupt 1 {
 		while (!INTCONbits.TMR0IF);								// gives 156,5 uS ~1,5 baud - should be 156,250000000005
 
 		rdata = 0;
-	  for (i = 0; i < 8; i++) {
+	  for (counter = 0; counter < 8; counter++) {
 			// receive 8 serial bits, LSB first
-			rdata |= RFID_IN_PIN << i;
+			rdata |= RFID_IN_PIN << counter;
 		
 			INTCONbits.TMR0IF = 0;	/* Clear the Timer Flag  */
 			TMR0L -= SER_BAUD;
@@ -174,68 +179,58 @@ static void low_priority_isr(void) __interrupt 2 {
 #endif
 	}
 	if (usart_drdy()) {
-		//INTCONbits.GIE = 0;	// disable until stopbit received
-/*
-		usart_gets(users[users_num], RFID_LENGTH);
-		users[users_num][RFID_LENGTH] = '\0';
-		users_num++;
-
-		for (counter = 0; counter < users_num; counter++) {
-			usart_puts("***");
-			usart_puts(users[counter]);
-			usart_puts("***\n");
-		}
-*/
-
-		// retransmit it
-//		last_c = c;
+//		INTCONbits.GIE = 0;	// disable until stopbit received
 		c = usart_getc();
-//		usart_putc(c);
 		
 		if (c == '\n') {
-			command[command_index] = '\0';	// null terminate it
+			// end of command
+			command[command_index - 1] = '\0';	// null terminate it
 			command_index = 0;
-			usart_puts(command);
+			if (strlen(command) > 1) {
+				// add rfid
+				strcpy(users[users_num++], command);
+			}
+			else {
+				// other commands
+				switch (command[0]) {
+					case DUMP_RFIDS:
+						for (counter = 0; counter < users_num; counter++) {
+							usart_puts(users[counter]);
+							usart_puts("\n");
+						}
+						break;
+					case OPEN_DOOR:
+						//open_door_state = 1;		// ERROR: does not ever return...
+						break;
+					case RELAY_1_ON:
+						RELAY_1_PIN = 1;
+						break;
+					case RELAY_2_ON:
+						RELAY_2_PIN = 1;
+						break;
+					case RELAY_1_OFF:
+						RELAY_1_PIN = 0;
+						break;
+					case RELAY_2_OFF:
+						RELAY_2_PIN = 0;
+						break;
+				}
+			}
+			
 		}
 		else {
-//			if (command_index < COMMAND_LENGTH) {
+			// add character to command and check for overflow
+			if (command_index <= COMMAND_LENGTH) {
 				command[command_index] = c;
-//			}
+				command_index++;
+			}
+			else {
+				command[COMMAND_LENGTH] = '\0';	// null terminate it
+				command_index = 0;
+				usart_puts("overflow\n");		
+			}
 		}
-
-/*
-		switch (c) {
-			case RELAY_1_ON:
-				RELAY_1_PIN = 1;
-				break;
-			case RELAY_2_ON:
-				RELAY_2_PIN = 1;
-				break;
-			case RELAY_1_OFF:
-				RELAY_1_PIN = 0;
-				break;
-			case RELAY_2_OFF:
-				RELAY_2_PIN = 0;
-				break;
-			case 'x':
-				for (counter = 0; counter < users_num; counter++) {
-					usart_puts("\n***");
-					usart_puts(users[counter]);
-					usart_puts("***\n");
-				}
-				break;
-			case '#':
-				users[users_num][RFID_LENGTH] = '\0';
-				users_rfid_byte_index = 0;
-				users_num++;
-				break;
-			case '\n':
-				break;
-			default:
-				users[users_num][users_rfid_byte_index++] = c;
-		}
-*/
-		//INTCONbits.GIE = 1;	// re-enable
+//		INTCONbits.GIE = 1;	// re-enable
 	}
 }
 
@@ -278,7 +273,7 @@ void led_debug() {
 	sleep_ms(20);
 }
 
-void door_open() {
+void open_door() {
 	// open door
 	RELAY_1_PIN = 1;
 	RELAY_2_PIN = 1;
