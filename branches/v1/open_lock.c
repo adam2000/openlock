@@ -14,7 +14,8 @@ volatile unsigned char rfid_byte_index;
 volatile unsigned char command[COMMAND_LENGTH + 1];
 volatile unsigned char command_index;
 
-
+#pragma udata users_section users
+volatile unsigned char users[MAX_USERS][RFID_LENGTH + 1];
 volatile unsigned char users_num;
 volatile unsigned char users_rfid_byte_index;
 
@@ -26,9 +27,6 @@ volatile unsigned char fifo_buffer[QUEUE_SIZE];
 unsigned char open_door_state;
 unsigned long timer_2;
 volatile unsigned char c;
-
-#pragma udata users_section users
-volatile unsigned char users[MAX_USERS][RFID_LENGTH + 1];
 
 void main(void) {
 	unsigned char i;
