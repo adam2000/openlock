@@ -7,18 +7,7 @@ GPASM = /opt/local/bin/gpasm
 GPSIM =/usr/local/bin/gpsim
 
 all:	open_lock
-sim:	open_lock_sim sim
-#uart:	uart
-
-#uart: uart.c
-#	$(SDCC) \
-#	--verbose \
-#	-V \
-#	-mpic16 \
-#	--use-non-free \
-#	-p$(PROCESSOR) \
-#	-Wl '-m' \
-#	-c $<
+sim:	open_lock_sim
 
 open_lock: open_lock.c
 	$(SDCC) \
@@ -49,7 +38,7 @@ open_lock_sim: open_lock.c
 	--use-crt=crt0.o \
 	--use-non-free \
 	-p$(PROCESSOR_SIM) \
-	-Wl '-m' \
+	-Wl '-m -s18f2550.lkr' \
 	$<
 #	-I"./" uart.o \
 

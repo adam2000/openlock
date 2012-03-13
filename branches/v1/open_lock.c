@@ -91,7 +91,8 @@ void main(void) {
 	INTCONbits.PEIE = 1;
 	INTCONbits.GIE = 1;	/* Enable Global interrupts   */	
 
-	sleep_ms(2000);
+//	sleep_ms(2000);
+	sleep_ms(20);
 	led_debug();
 
 	my_usart_open();
