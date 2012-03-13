@@ -54,8 +54,11 @@ U1.ypos = 360
 node LED
 attach LED portb5 led.in
 
-node soft_rx
-attach soft_rx portb0 U1.TXPIN
+#node soft_rx
+#attach soft_rx portb0 U1.TXPIN
+
+node pic_rx
+attach pic_rx portc7 U1.TXPIN
 
 node pic_tx
 attach pic_tx portc6 U1.RXPIN
@@ -64,6 +67,7 @@ attach pic_tx portc6 U1.RXPIN
 
 scope.ch0 = "portb0"
 scope.ch1 = "portc6"
+scope.ch2 = "portc7"
 
 
 break e 0x8
