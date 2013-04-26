@@ -37,7 +37,7 @@
 
 	$escmode = 0;
 
-	$ls = LockServer::Db->new;
+	$ls = LockServer::Db->my_connect;
 	
 	$authorized_user = $req_rec->user;
 	$q_authorized_user = $ls->{dbh}->quote($authorized_user);
@@ -60,7 +60,7 @@
 [$ if (($fdat{a} =~ /^delete/i) && ($is_admin || ($authorized_user eq $username))) $]
 	[-
 	# delete user
-	$ls = LockServer::Db->new; 
+	$ls = LockServer::Db->my_connect; 
 
 	-]
 <p class="default">User deleted</p>
