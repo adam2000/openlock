@@ -6,13 +6,15 @@ use Device::BCM2835;
 use Device::SerialPort;
 use Sys::Syslog;
 use RPC::XML::Server;
-use DBI;
+#use DBI;
 use Time::HiRes qw( usleep );
 use threads;
 use Thread::Suspend;
 use Data::Dumper;
 
-use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', '';
+use lib qw( /etc/apache2/perl );
+use LockServer::Db;
+
 #use constant MY_SERVER_ROOT => '/var/www/lock_server';
 my $MY_SERVER_ROOT = '/var/www/lock_server';
 
@@ -21,7 +23,8 @@ syslog('info', "starting...");
 
 # connect to db
 my $dbh;
-if ($dbh = DBI->connect(MY_DBI)) {
+if($dbh = LockServer::Db->new) {
+#if ($dbh = DBI->connect(MY_DBI)) {
         $dbh->{'mysql_auto_reconnect'} = 1;
 	syslog('info', "connected to db");
 }
@@ -118,7 +121,7 @@ sub rfid_reader {
 		}
 		else {
 			# we got a rfid tag...
-			my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+			my $dbh_thr = LockServer::Db->new or warn $!;
 			if ($dbh_thr) {
 				my $sth_thr = $dbh_thr->prepare(qq[SELECT `username`, `name`, `active`, `sound_on_rfid_open` FROM users WHERE rfid = ] . $dbh_thr->quote($rfid) . " AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`))");
 				$sth_thr->execute || warn $!;
@@ -182,7 +185,7 @@ sub xml_rpc_hander_unlock {
 	my $i;
 	my ($sender, $user) = @_;
 
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	if ($dbh_thr) {
 		my $sth_thr = $dbh_thr->prepare(qq[SELECT `username`, `active`, `sound_on_rfid_open` FROM users WHERE username = ] . $dbh_thr->quote($user) . " AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`))");
 		$sth_thr->execute || warn $!;
@@ -208,7 +211,7 @@ sub xml_rpc_hander_validate {
 	my $i;
 	my ($sender, $user) = @_;
 
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	if ($dbh_thr) {
 		my $sth_thr = $dbh_thr->prepare(qq[SELECT `username`, `active`, `sound_on_rfid_open` FROM users WHERE username = ] . $dbh_thr->quote($user) . " AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`))");
 		$sth_thr->execute || warn $!;
@@ -252,7 +255,7 @@ sub buzzer {
 
 sub get_defaults {
 	my $pref_name = shift;
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `value` FROM default_prefs WHERE `name` = ] . $dbh_thr->quote($pref_name));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
@@ -270,7 +273,7 @@ sub get_defaults {
 
 sub get_user_defaults {
 	my ($user, $pref_name) = @_;
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `$pref_name` FROM users WHERE username = ] . $dbh_thr->quote($user));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
@@ -295,7 +298,7 @@ sub get_user_defaults {
 
 sub db_log {
 	my ($user, $rfid, $message, $source) = @_;
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	my $sth_thr = $dbh_thr->prepare(qq[INSERT INTO `log` (`user`, 
 																												`rfid`, 
 																												`action`, 
