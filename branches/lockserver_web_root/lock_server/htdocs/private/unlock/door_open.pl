@@ -4,9 +4,9 @@ use strict;
 use Apache2::RequestUtil;
 use DBI;
 use Data::Dumper;
-#use LockServer::Db;
 
-use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', '';
+use lib qw( /etc/apache2/perl );
+use LockServer::Db;
 
 my $r = Apache2::RequestUtil->request;
 
@@ -46,7 +46,7 @@ $r->print ($html);
 
 sub get_defaults {
 	my $pref_name = shift;
-	my $dbh_thr = DBI->connect(MY_DBI) or warn $!;
+	my $dbh_thr = LockServer::Db->new or warn $!;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `value` FROM default_prefs WHERE `name` = ] . $dbh_thr->quote($pref_name));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
@@ -64,7 +64,8 @@ sub get_defaults {
 
 sub get_user_defaults {
 	my ($user, $pref_name) = @_;
-	my $dbh_thr = DBI->connect(MY_DBI) or die $!;
+	my $dbh_thr = LockServer::Db->new or die $!;
+	print Dumper $dbh_thr;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `$pref_name` FROM users  WHERE username = ] . $dbh_thr->quote($user));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
