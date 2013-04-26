@@ -1,0 +1,25 @@
+.default {
+	font-family: Verdana, Geneva, sans-serif;
+	text-align: justify;
+	vertical-align: top;
+}
+.enabled {
+	font-family: Verdana, Geneva, sans-serif;
+}
+.disabled {
+	font-family: Verdana, Geneva, sans-serif;
+	color: #CCC;
+}
+.rfid {
+	font-family: Verdana, Geneva, sans-serif;
+	color: #CCC;
+}
+.label {
+	font-family: Verdana, Geneva, sans-serif;
+	text-align: right;
+	vertical-align: top;
+}
+.log {
+	color: #999;
+	font-size: 10px;
+}

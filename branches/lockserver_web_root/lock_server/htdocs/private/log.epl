@@ -1,0 +1,34 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<link href="../admin.css" rel="stylesheet" type="text/css" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=500" /> 
+    <meta http-equiv="refresh" content="5" />
+<title>Lock Server</title>
+<body>
+[-
+	use LockServer::Db;
+	
+	$ls = new LockServer::Db;
+	
+	$sth = $ls->{dbh} -> prepare ("SELECT * from log where action != 'lock' AND time_stamp > (NOW() - INTERVAL 1 DAY) ORDER BY time_stamp DESC") ;
+
+	$sth -> execute ;
+-]
+    <table>
+      [$ while ($d = $sth -> fetchrow_hashref) $]
+  <tr>
+    <td><span class="default">[+ $d->{time_stamp} +]</span></td>
+    <td class="default">&nbsp;</td>
+    <td class="default">[+ $d->{action} +]</td>
+    <td class="default">&nbsp;</td>
+    <td><span class="default">[+ $d->{user} +]</span></td>
+    <td class="default">&nbsp;</td>
+    <td><span class="default">[+ $d->{rfid} +]</span></td>
+    <td class="default">&nbsp;</td>
+    <td><span class="default">[+ $d->{source} +]</span></td>
+  </tr>
+      [$ endwhile $]
+    </table>
+</body>
+</html>

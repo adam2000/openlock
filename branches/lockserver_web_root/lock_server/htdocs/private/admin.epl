@@ -1,0 +1,67 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<link href="../admin.css" rel="stylesheet" type="text/css" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=300" /> 
+<title>Lock Server</title>
+<body>
+[- 
+	use LockServer::Db;
+	use Data::Dumper;
+	
+	$ls = LockServer::Db->new;
+	
+	# check if the user is admin
+	$authorized_user = $req_rec->user;
+	$quoted_authorized_user = $ls->{dbh}->quote($authorized_user);
+	$sth = $ls->{dbh}->prepare("SELECT admin from users WHERE username = $quoted_authorized_user AND admin = 1");
+	$sth->execute;
+	$is_admin = $sth->fetchrow; 
+	$sth->finish;
+-]
+[$ if ($fdat{a} =~ /^add/i) $]
+	[-
+	# insert new user
+	$q_name = $ls->{dbh}->quote($fdat{name});
+	$sth = $ls->{dbh}->prepare("INSERT INTO users (`name`, `active_from`) VALUES ($q_name, NOW())");
+	$sth->execute;
+	$sth->finish;
+	$http_headers_out{'Location'} = 'detail.epl?a=edit&id=' . $ls->{dbh}->{mysql_insertid};
+	-]
+[$ endif $]
+[-
+	$sth = $ls->{dbh} -> prepare ("SELECT * from users ORDER BY `group` DESC, name") ;
+
+	# excute the query
+	$sth -> execute ;
+-]
+	<form name="form1" method="get" action="">
+	  <table>
+	    [$ while ($d = $sth -> fetchrow_hashref) $]
+		  <tr class="default">
+	   		<td class="default">[+ $d->{'admin'} ? 'A' : '' +][+ $d->{tech_group} ? 'T' : '' +]</td>
+[$ if ($is_admin || ($authorized_user eq $d->{'username'})) $]
+	   		<td>[$ if $d->{active} $]<a href="detail.epl?a=edit&id=[+ $d->{'id'} +]">[+ $d->{name} +]</a> [$ else $]<a href="detail.epl?a=edit&id=[+ $d->{'id'} +]" class="disabled">[+ $d->{name} +]</a>[$ endif $]</td>
+[$ else $]
+				<td class="default">[+ $d->{'name'} +]</td>
+[$ endif $]
+	   		<td class="default">[+ $d->{'username'} +]</td>
+	   		<td class="default"><span class="default"><a href="mailto:[+ $d->{mail} +]">[+ $d->{mail} +]</td>
+	   		<td><nobr>[+ $d->{phone} +]</nobr></td>
+	   		<td><nobr>[+ $d->{group} +]</nobr></td>
+	   		<td>&nbsp;</td>
+	   		<td><span class="rfid">[+ $d->{rfid} +]</span></td>
+          </tr>
+	    [$ endwhile $]
+      </table>
+[$ if ($is_admin) $]
+	  <p>
+	    <input type="text" name="name" id="name">
+      </p>
+	  <p>
+	    <input type="submit" name="a" id="button" value="Add username">
+      </p>
+[$ endif $]
+</form>
+</body>
+</html>

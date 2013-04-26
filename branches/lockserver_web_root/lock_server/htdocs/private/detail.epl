@@ -1,0 +1,498 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<link href="../admin.css" rel="stylesheet" type="text/css" />
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+	<meta name="viewport" content="width=300" /> 
+	<META HTTP-EQUIV="Cache-Control" CONTENT="max-age=0">
+	<META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+	<META http-equiv="expires" content="0">
+	<META HTTP-EQUIV="Expires" CONTENT="Tue, 01 Jan 1980 1:00:00 GMT">
+	<META HTTP-EQUIV="Pragma" CONTENT="no-cache">	<link rel="stylesheet" media="all" type="text/css" href="../jquery-ui-1.8.16.custom.css" />
+	<style type="text/css"> 
+	/* css for timepicker */
+		.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+		.ui-timepicker-div dl { text-align: left; }
+		.ui-timepicker-div dl dt { height: 25px; margin-bottom: -25px; }
+		.ui-timepicker-div dl dd { margin: 0 10px 10px 65px; }
+		.ui-timepicker-div td { font-size: 90%; }
+		.ui-tpicker-grid-label { background: none; border: none; margin: 0; padding: 0; }
+			
+	</style> 
+		
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui-1.8.16.custom.min.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui-timepicker-addon.js"></script>
+	<script type="text/javascript" src="../js/jquery-ui-sliderAccess.js"></script>
+    <title>Lock Server</title>
+
+
+<body>
+<p><a href="admin.epl" class="default">Back</a></p>
+[-
+  use LockServer::Db;
+  use Digest::MD5 qw(md5 md5_hex);
+  use Date::Parse;
+  use Data::Dumper;
+
+	$escmode = 0;
+
+	$ls = LockServer::Db->new;
+	
+	$authorized_user = $req_rec->user;
+	$q_authorized_user = $ls->{dbh}->quote($authorized_user);
+
+	$q_id = $ls->{dbh}->quote($fdat{id});
+
+	# get username from id
+	$sth = $ls->{dbh}->prepare("SELECT username from users WHERE id = $q_id");
+	$sth->execute;
+	$username = $sth->fetchrow; 
+	$sth->finish;
+
+	# check if the user is admin
+	$sth = $ls->{dbh}->prepare("SELECT admin from users WHERE username = $q_authorized_user AND admin = 1");
+	$sth->execute;
+	$is_admin = $sth->fetchrow; 
+	$sth->finish;
+-]
+
+[$ if (($fdat{a} =~ /^delete/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	# delete user
+	$ls = LockServer::Db->new; 
+
+	-]
+<p class="default">User deleted</p>
+	[-
+	$sth = $ls->{dbh}->prepare("DELETE FROM users WHERE id = " . $q_id);
+	$sth->execute;
+	$sth->finish;
+	-]
+[$ endif $]
+
+[$ if (($fdat{a} =~ /^edit$/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth -> execute ;
+
+	$d = $sth -> fetchrow_hashref;
+	if ($d->{'rfid'}) {
+		$html_rfid_field = $d->{'rfid'} . '<br><a href="?a=unpair&id=' . $fdat{'id'} . '">un-pair</a>';
+	}
+	else {
+		$html_rfid_field = ($d->{'rfid'} ? $d->{'rfid'} : ('<a href="?a=pair&id=' . $d->{'id'} . '">Start pairing</a>'));
+	}
+	$sth->finish;
+	-]
+[$ endif $]
+
+[$ if (($fdat{a} =~ /^update$/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	$active = ($fdat{active} ? 1 : 'NULL');
+	$admin = ($fdat{admin} ? 1 : 'NULL');
+	$q_group = $ls->{dbh}->quote($fdat{group});
+
+	# ugly hack here...
+	$tech_group = ($fdat{tech_group} ? 1 : 'NULL');
+	
+	$q_username = $ls->{dbh}->quote($fdat{username});
+	$q_name = $ls->{dbh}->quote($fdat{name});
+	$q_mail = $ls->{dbh}->quote($fdat{mail});
+	$q_phone = $ls->{dbh}->quote($fdat{phone});
+	$q_password;
+	
+	$open_time = $fdat{open_time};
+	$open_time =~ s/\,/\./;
+	$q_open_time = $ls->{dbh}->quote($open_time);
+	$q_sound_file = $ls->{dbh}->quote($fdat{sound_file});
+	$sound_repeat = ($fdat{sound_repeat} ? 1 : 'NULL');
+	$sound_on_rfid_open = ($fdat{sound_on_rfid_open} ? 1 : 'NULL');
+	
+	if ($fdat{active_from}) {
+		$sql_active_from = 'FROM_UNIXTIME(' . str2time($fdat{active_from}) . ')';
+	}
+	else {
+		$sql_active_from = 'NULL';
+	}
+	
+	if ($fdat{expire_at}) {
+		$sql_expire_at = 'FROM_UNIXTIME(' . str2time($fdat{expire_at}) . ')';
+	}
+	else {
+		$sql_expire_at = 'NULL';
+	}
+	
+	if ($is_admin) {
+		if ($fdat{password}) {
+			# change password
+			$q_password = $ls->{dbh}->quote(md5_hex($fdat{password}));
+			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+																											`admin` = $admin, \
+																											`group` = $q_group, \
+																											`tech_group` = $tech_group, \
+																											`username` = $q_username, \
+																											`password` = $q_password, \
+																											`name` = $q_name, \
+																											`mail` = $q_mail, \
+																											`phone` = $q_phone, \
+																											`open_time` = $q_open_time, \
+																											`sound_file` = $q_sound_file, \
+																											`sound_repeat` = $sound_repeat, \
+																											`sound_on_rfid_open` = $sound_on_rfid_open, \
+																											`active_from` = $sql_active_from, \
+																											`expire_at` = $sql_expire_at \
+																		WHERE id = $q_id") ;
+		}
+		else {
+			# update other fields
+			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+																											`admin` = $admin, \
+																											`group` = $q_group, \
+																											`tech_group` = $tech_group, \
+																											`username` = $q_username, \
+																											`name` = $q_name, \
+																											`mail` = $q_mail, \
+																											`phone` = $q_phone, \
+																											`open_time` = $q_open_time, \
+																											`sound_file` = $q_sound_file, \
+																											`sound_repeat` = $sound_repeat, \
+																											`sound_on_rfid_open` = $sound_on_rfid_open, \
+																											`active_from` = $sql_active_from, \
+																											`expire_at` = $sql_expire_at \
+																		WHERE id = $q_id") ;
+		}
+	}
+	else {
+		if ($fdat{password}) {
+			# change password
+			$q_password = $ls->{dbh}->quote(md5_hex($fdat{password}));
+			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+																											`group` = $q_group, \
+																											`username` = $q_username, \
+																											`password` = $q_password, \
+																											`name` = $q_name, \
+																											`mail` = $q_mail, \
+																											`phone` = $q_phone, \
+																											`open_time` = $q_open_time, \
+																											`sound_file` = $q_sound_file, \
+																											`sound_repeat` = $sound_repeat, \
+																											`sound_on_rfid_open` = $sound_on_rfid_open, \
+																											`active_from` = $sql_active_from, \
+																											`expire_at` = $sql_expire_at \
+																		WHERE id = $q_id") ;
+		}
+		else {
+			# update other fields
+			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+																											`group` = $q_group, \
+																											`username` = $q_username, \
+																											`name` = $q_name, \
+																											`mail` = $q_mail, \
+																											`phone` = $q_phone, \
+																											`open_time` = $q_open_time, \
+																											`sound_file` = $q_sound_file, \
+																											`sound_repeat` = $sound_repeat, \
+																											`sound_on_rfid_open` = $sound_on_rfid_open, \
+																											`active_from` = $sql_active_from, \
+																											`expire_at` = $sql_expire_at \
+																		WHERE id = $q_id") ;
+		}
+	}
+	$sth -> execute ;
+	$sth->finish;
+
+	# get the rfid for user id
+	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth -> execute ;
+
+	$d = $sth -> fetchrow_hashref;
+	if ($d->{'rfid'}) {
+		$html_rfid_field = $d->{'rfid'} . '<br><a href="?a=unpair&id=' . $fdat{'id'} . '">un-pair</a>';
+	}
+	else {
+		$html_rfid_field = ($d->{'rfid'} ? $d->{'rfid'} : ('<a href="?a=pair&id=' . $d->{'id'} . '">Start pairing</a>'));
+	}
+	$sth->finish;
+	$http_headers_out{'Location'} = 'detail.epl?a=edit&id=' . $fdat{'id'};
+	-]
+[$ endif $]
+	
+[$ if (($fdat{a} =~ /^pair$/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	$sth = $ls->{dbh}->prepare("INSERT INTO log (`action`, `source`, `time_stamp`) VALUES ('pair', 'web', NOW())");
+	$sth->execute;
+	$sth->finish;
+
+	$html_rfid_field = '<a href="?a=pair_finished&id=' . $fdat{'id'} . '">finish pairing</a>';
+	$html_rfid_field .= '<br>register RFID at door reader'
+	
+	-]
+[$ endif $]
+
+[$ if (($fdat{a} =~ /^pair_finished$/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	# get pairing start time
+	$sth = $ls->{dbh} -> prepare ("SELECT time_stamp FROM log WHERE action = 'pair' ORDER BY time_stamp DESC LIMIT 1");
+	$sth -> execute ;
+	$d = $sth -> fetchrow_hashref || die $!;
+	$pairing_start_time = $d->{time_stamp};
+	$q_pairing_start_time = $ls->{dbh}->quote($pairing_start_time);
+	$sth->finish;
+
+	# get paired rfid
+	$sth = $ls->{dbh}->prepare("SELECT rfid FROM log WHERE source = 'rfid' AND action = 'unauthorized' AND time_stamp > $q_pairing_start_time ORDER BY time_stamp DESC LIMIT 1");
+	$sth->execute;
+
+	if ($d = $sth->fetchrow_hashref) {
+		$paired_rfid = $d->{rfid};
+		if ($paired_rfid) {
+			# rfid detected
+			$q_paired_rfid = $ls->{dbh}->quote($paired_rfid);
+			$sth->finish;
+		
+			# check if it it in use...
+			$sth2 = $ls->{dbh}->prepare("SELECT id, username FROM users WHERE rfid = $q_paired_rfid");
+			$sth2->execute;
+			if ($sth2->rows) {
+				# in use
+				$html_rfid_field = 'in use by<br>';
+				while ($d = $sth2->fetchrow_hashref) {
+					$html_rfid_field .= '<a href="?a=edit&id=' . $d->{id} . '">' . $d->{username} . '</a><br>';
+				}
+			}
+			else {
+				# not in use...
+				# assign it to user...
+				$q_paired_rfid = $ls->{dbh}->quote($paired_rfid);
+				$sth3 = $ls->{dbh} -> prepare ("UPDATE users SET `rfid` = $q_paired_rfid \
+																				WHERE id = $q_id") ;
+				$sth3->execute;
+				$sth3->finish;
+		
+				$html_rfid_field = "$paired_rfid<br>paired" . ' <a href="?a=unpair&id=' . $fdat{'id'} . '">un-pair</a>';
+			}
+			$sth2->finish;
+		}
+	}
+	else {
+		# rfid not detected
+		$html_rfid_field = '<a href="?a=pair&id=' . $fdat{'id'} . '">re-pair</a><br>no RFID detected, try again';
+	}
+	$sth->finish;
+#	$http_headers_out{'Location'} = 'detail.epl?a=edit&id=' . $fdat{'id'};
+	
+	-]
+[$ endif $]
+
+[$ if (($fdat{a} =~ /^unpair$/i) && ($is_admin || ($authorized_user eq $username))) $]
+	[-
+	$sth = $ls->{dbh} -> prepare ("UPDATE users SET `rfid` = '' \
+																 WHERE id = $q_id") ;
+	$sth->execute;
+	$sth->finish;
+
+	$html_rfid_field = "un-paired" . '<br><a href="?a=pair&id=' . $fdat{'id'} . '">re-pair</a>';
+	-]
+[$ endif $]
+
+<!-- start of content -->
+[$ if ($is_admin || ($authorized_user eq $username)) $]
+[- 
+	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth -> execute ;
+-]
+[$ if ($d = $sth -> fetchrow_hashref) $]
+<form name="form1" method="get" action="detail.epl">
+		<input name="id" type="hidden" id="id" value="[+ $d->{'id'} +]">
+		<table>
+		  <tr>
+		    <td valign="top"><table>
+		      <tr>
+		        <td class="label"><span class="label">Enabled</span></td>
+		        <td class="default"> [$ if $d->{active} $]
+		          <input name="active" type="checkbox" id="active" value="1" checked>
+		          [$ else $]
+		          <input name="active" type="checkbox" id="active" value="1">
+	            [$ endif $] </td>
+	          </tr>
+		   		[$ if ($is_admin) $]
+		      <tr>
+		        <td class="label"><span class="label">Admin</span></td>
+		        <td class="default"> [$ if $d->{admin} $]
+		          <input name="admin" type="checkbox" id="admin" value="1" checked>
+		          [$ else $]
+		          <input name="admin" type="checkbox" id="admin" value="1">
+	            [$ endif $] </td>
+	          </tr>
+	        [$ endif $]
+		      <tr>
+		        <td class="label"><span class="label">Group</span></td>
+		        <td class="default"><input name="group" type="text" id="group" value="[+ $d->{'group'} +]" size="40"></td>
+	          </tr>
+		      <tr>
+		        <td class="label"><span class="label">Name</span></td>
+		        <td class="default"><input name="name" type="text" id="name" value="[+ $d->{'name'} +]" size="40"></td>
+	          </tr>
+		      <tr>
+		        <td class="label"><span class="label">Mail</span></td>
+		        <td class="default"><input name="mail" type="text" id="mail" value="[+ $d->{'mail'} +]" size="40"></td>
+	          </tr>
+		      <tr>
+		        <td class="label"><span class="label">Phone</span></td>
+		        <td class="default"><input name="phone" type="text" id="phone" value="[+ $d->{'phone'} +]" size="40"></td>
+	          </tr>
+		      <tr>
+		        <td class="label">&nbsp;</td>
+		        <td class="default"></td>
+	          </tr>
+		      <tr>
+		        <td class="label"><span class="label">Username</span></td>
+		        <td class="default"><input name="username" type="text" id="username" value="[+ $d->{'username'} +]" size="40"></td>
+	          </tr>
+		      <tr>
+		        <td class="label"><span class="label">Password</span></td>
+		        <td class="default"><input name="password" type="password" id="password" value="" size="40"></td>
+	          </tr>
+              <tr>
+                <td class="label">&nbsp;</td>
+                <td class="default">&nbsp;</td>
+              </tr>
+ [$ if $is_admin $]
+<!--             <tr>
+              	<td class="label"><nobr>Tech-room</nobr></td>
+
+                <td class="default">
+ 	[$ if $d->{tech_group} $]
+               <input name="tech_group" type="checkbox" id="tech_group" value="1" checked>
+	[$ else $]
+                <input name="tech_group" type="checkbox" id="tech_group" value="1">
+	[$ endif $]
+							 </td>
+              </tr>-->
+[$ endif $]
+	        </table></td>
+		    <td align="right" valign="top"><table>
+		      <tr>
+		        <td class="label"><span class="label">RFID</span></td>
+		        <td class="rfid">[+ $html_rfid_field +]</td>
+	          </tr>
+		      <tr>
+		        <td class="label">&nbsp;</td>
+		        <td class="default">&nbsp;</td>
+	          </tr>
+		      <tr>
+		        <td class="label">Open time</td>
+		        <td class="default"><input name="open_time" type="text" id="open_time" value="[+ $d->{'open_time'} +]" size="40"></td>
+	          </tr>
+<!--		      <tr>
+
+		        <td class="label">Sound file</td>
+		        <td class="default">[-
+	$sound_dir = '/var/www/lock_server/sounds';
+	opendir($dh, $sound_dir) || die $!;
+	@sounds = grep { /.*\.wav|.*\.mp3/i && -f "$sound_dir/$_" } readdir($dh);
+	closedir $dh;
+
+-]
+	            <select name="sound_file" id="sound_file">
+	            [$ foreach (@sounds) $]
+	              <option value="[+ $_ +]"[+ ($d->{'sound_file'} =~ /^$_$/) ? 'selected' : '' +]>[+ $_ +]</option>
+							[$ endforeach $]
+              </select>
+
+              <form action="load.html" name="form1" method="post" enctype="multipart/form-data">
+<table>  
+ <tr class="cell4">
+   <td>Select EXCEL rate sheet</td>
+   <td><input type="file" name="file" value=""></td>   
+  </tr>
+   <tr class="cell3">
+   <td>&nbsp;</td>
+   <td><input type="submit" name="upload" value="upload"></td>   
+  </tr>      
+</table>
+</form>[+ Dumper($fdat{file}) +]
+            </td>
+	          </tr>
+		      <tr>
+		        <td class="label">Repeat</td>
+		        <td class="default"> [$ if $d->{sound_repeat} $]
+		          <input name="sound_repeat" type="checkbox" id="sound_repeat" value="1" checked>
+		          [$ else $]
+		          <input name="sound_repeat" type="checkbox" id="sound_repeat" value="1">
+	            [$ endif $] </td>
+	          </tr>
+		      <tr>
+		        <td class="label">Sound on RFID open</td>
+		        <td class="default"> [$ if $d->{sound_on_rfid_open} $]
+            <input name="sound_on_rfid_open" type="checkbox" id="sound_on_rfid_open" value="1" checked>
+						[$ else $]
+						<input name="sound_on_rfid_open" type="checkbox" id="sound_on_rfid_open" value="1">
+						[$ endif $] </td>
+	          </tr>-->
+   		      <tr>
+		        <td class="label">&nbsp;</td>
+		        <td class="default">&nbsp;</td>
+	          </tr>
+		      <tr>
+		        <td class="label">&nbsp;</td>
+		        <td class="default">&nbsp;</td>
+	          </tr>
+	        </table>
+
+	        <table align="right">
+
+		      <tr>
+		        <td class="default">Active from</td>
+		        <td class="default">Expire at</td>
+	          </tr>
+		      <tr>
+		        <td default="label">
+					<input name="active_from" type="text" id="active_from" value="[+ $d->{'active_from'} +]" size="22" />
+					<script type="text/javascript">$('#active_from').datetimepicker();</script>
+ 				</td>
+		        <td default="label">
+					<input name="expire_at" type="text" id="expire_at" value="[+ $d->{'expire_at'} +]" size="22" />
+					<script type="text/javascript">$('#expire_at').datetimepicker();</script>
+ 				</td>
+	          </tr>
+
+	        </table>
+	        </td>
+	      </tr>
+  </table>
+  <p>
+	  <input type="button" name="a" id="Delete" value="Delete" onClick="Javascript: window. location. replace('?a=delete&id=[+ $fdat{id} +]')">
+	  <input type="submit" name="a" id="a" value="Update">
+		</p>
+		</form>
+[$ endif $]
+[- $sth->finish; -]
+<div class="log">
+[- 
+	$q_username = $ls->{dbh}->quote($username);
+	$sth = $ls->{dbh}->prepare("SELECT * from log WHERE `user` = $q_username AND action != 'lock' ORDER BY time_stamp DESC LIMIT 20") ;
+
+	# excute the query
+	$sth -> execute ;
+-]
+  <table>
+      [$ while ($d = $sth -> fetchrow_hashref) $]
+  <tr class="log">
+    <td class="default">[+ $d->{time_stamp} +]</td>
+    <td class="log">&nbsp;</td>
+    <td class="default">[+ $d->{action} +]</td>
+    <td class="log">&nbsp;</td>
+    <td class="default">[+ $d->{user} +]</td>
+    <td class="log">&nbsp;</td>
+    <td class="default">[+ $d->{rfid} +]</td>
+    <td class="log">&nbsp;</td>
+    <td class="default">[+ $d->{source} +]</td>
+  </tr>
+      [$ endwhile $]
+</table></div>
+[$ endif $]
+[- $sth->finish; -]
+</body>
+</html>
