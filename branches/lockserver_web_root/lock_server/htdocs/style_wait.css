@@ -1,0 +1,26 @@
+body {
+	background-color: #D3B000;
+}
+p {
+	font-family: Verdana, Geneva, sans-serif;
+	font-size: 36px;
+	color: #000;
+	text-decoration: none;
+	font-weight: bold;
+}
+a:link {
+	color: #000;
+	text-decoration: none;
+}
+a:visited {
+	text-decoration: none;
+	color: #000;
+}
+a:hover {
+	text-decoration: underline;
+	color: #000;
+}
+a:active {
+	text-decoration: none;
+	color: #000;
+}
