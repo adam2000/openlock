@@ -24,8 +24,7 @@ syslog('info', "starting...");
 # connect to db
 my $dbh;
 if($dbh = LockServer::Db->new) {
-#if ($dbh = DBI->connect(MY_DBI)) {
-        $dbh->{'mysql_auto_reconnect'} = 1;
+	$dbh->{'mysql_auto_reconnect'} = 1;
 	syslog('info', "connected to db");
 }
 else {
