@@ -46,7 +46,7 @@ $r->print ($html);
 
 sub get_defaults {
 	my $pref_name = shift;
-	my $dbh_thr = LockServer::Db->new or warn $!;
+	my $dbh_thr = LockServer::Db->my_connect or warn $!;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `value` FROM default_prefs WHERE `name` = ] . $dbh_thr->quote($pref_name));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
@@ -64,8 +64,7 @@ sub get_defaults {
 
 sub get_user_defaults {
 	my ($user, $pref_name) = @_;
-	my $dbh_thr = LockServer::Db->new or die $!;
-	print Dumper $dbh_thr;
+	my $dbh_thr = LockServer::Db->my_connect or die $!;
 	my $sth_thr = $dbh_thr->prepare(qq[SELECT `$pref_name` FROM users  WHERE username = ] . $dbh_thr->quote($user));
 	if ($sth_thr->execute) {
 		my ($pref) = $sth_thr->fetchrow;
