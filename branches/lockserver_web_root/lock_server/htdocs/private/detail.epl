@@ -40,18 +40,18 @@
 	$ls = LockServer::Db->my_connect;
 	
 	$authorized_user = $req_rec->user;
-	$q_authorized_user = $ls->{dbh}->quote($authorized_user);
+	$q_authorized_user = $ls->quote($authorized_user);
 
-	$q_id = $ls->{dbh}->quote($fdat{id});
+	$q_id = $ls->quote($fdat{id});
 
 	# get username from id
-	$sth = $ls->{dbh}->prepare("SELECT username from users WHERE id = $q_id");
+	$sth = $ls->prepare("SELECT username from users WHERE id = $q_id");
 	$sth->execute;
 	$username = $sth->fetchrow; 
 	$sth->finish;
 
 	# check if the user is admin
-	$sth = $ls->{dbh}->prepare("SELECT admin from users WHERE username = $q_authorized_user AND admin = 1");
+	$sth = $ls->prepare("SELECT admin from users WHERE username = $q_authorized_user AND admin = 1");
 	$sth->execute;
 	$is_admin = $sth->fetchrow; 
 	$sth->finish;
@@ -65,7 +65,7 @@
 	-]
 <p class="default">User deleted</p>
 	[-
-	$sth = $ls->{dbh}->prepare("DELETE FROM users WHERE id = " . $q_id);
+	$sth = $ls->prepare("DELETE FROM users WHERE id = " . $q_id);
 	$sth->execute;
 	$sth->finish;
 	-]
@@ -73,7 +73,7 @@
 
 [$ if (($fdat{a} =~ /^edit$/i) && ($is_admin || ($authorized_user eq $username))) $]
 	[-
-	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth = $ls -> prepare ("SELECT * from users WHERE id = " . $ls->quote($fdat{id})) ;
 	$sth -> execute ;
 
 	$d = $sth -> fetchrow_hashref;
@@ -91,21 +91,21 @@
 	[-
 	$active = ($fdat{active} ? 1 : 'NULL');
 	$admin = ($fdat{admin} ? 1 : 'NULL');
-	$q_group = $ls->{dbh}->quote($fdat{group});
+	$q_group = $ls->quote($fdat{group});
 
 	# ugly hack here...
 	$tech_group = ($fdat{tech_group} ? 1 : 'NULL');
 	
-	$q_username = $ls->{dbh}->quote($fdat{username});
-	$q_name = $ls->{dbh}->quote($fdat{name});
-	$q_mail = $ls->{dbh}->quote($fdat{mail});
-	$q_phone = $ls->{dbh}->quote($fdat{phone});
+	$q_username = $ls->quote($fdat{username});
+	$q_name = $ls->quote($fdat{name});
+	$q_mail = $ls->quote($fdat{mail});
+	$q_phone = $ls->quote($fdat{phone});
 	$q_password;
 	
 	$open_time = $fdat{open_time};
 	$open_time =~ s/\,/\./;
-	$q_open_time = $ls->{dbh}->quote($open_time);
-	$q_sound_file = $ls->{dbh}->quote($fdat{sound_file});
+	$q_open_time = $ls->quote($open_time);
+	$q_sound_file = $ls->quote($fdat{sound_file});
 	$sound_repeat = ($fdat{sound_repeat} ? 1 : 'NULL');
 	$sound_on_rfid_open = ($fdat{sound_on_rfid_open} ? 1 : 'NULL');
 	
@@ -126,8 +126,8 @@
 	if ($is_admin) {
 		if ($fdat{password}) {
 			# change password
-			$q_password = $ls->{dbh}->quote(md5_hex($fdat{password}));
-			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+			$q_password = $ls->quote(md5_hex($fdat{password}));
+			$sth = $ls->prepare ("UPDATE users SET `active` = $active, \
 																											`admin` = $admin, \
 																											`group` = $q_group, \
 																											`tech_group` = $tech_group, \
@@ -146,7 +146,7 @@
 		}
 		else {
 			# update other fields
-			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+			$sth = $ls->prepare ("UPDATE users SET `active` = $active, \
 																											`admin` = $admin, \
 																											`group` = $q_group, \
 																											`tech_group` = $tech_group, \
@@ -166,8 +166,8 @@
 	else {
 		if ($fdat{password}) {
 			# change password
-			$q_password = $ls->{dbh}->quote(md5_hex($fdat{password}));
-			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+			$q_password = $ls->quote(md5_hex($fdat{password}));
+			$sth = $ls -> prepare ("UPDATE users SET `active` = $active, \
 																											`group` = $q_group, \
 																											`username` = $q_username, \
 																											`password` = $q_password, \
@@ -184,7 +184,7 @@
 		}
 		else {
 			# update other fields
-			$sth = $ls->{dbh} -> prepare ("UPDATE users SET `active` = $active, \
+			$sth = $ls -> prepare ("UPDATE users SET `active` = $active, \
 																											`group` = $q_group, \
 																											`username` = $q_username, \
 																											`name` = $q_name, \
@@ -203,7 +203,7 @@
 	$sth->finish;
 
 	# get the rfid for user id
-	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth = $ls -> prepare ("SELECT * from users WHERE id = " . $ls->quote($fdat{id})) ;
 	$sth -> execute ;
 
 	$d = $sth -> fetchrow_hashref;
@@ -220,7 +220,7 @@
 	
 [$ if (($fdat{a} =~ /^pair$/i) && ($is_admin || ($authorized_user eq $username))) $]
 	[-
-	$sth = $ls->{dbh}->prepare("INSERT INTO log (`action`, `source`, `time_stamp`) VALUES ('pair', 'web', NOW())");
+	$sth = $ls->prepare("INSERT INTO log (`action`, `source`, `time_stamp`) VALUES ('pair', 'web', NOW())");
 	$sth->execute;
 	$sth->finish;
 
@@ -233,26 +233,26 @@
 [$ if (($fdat{a} =~ /^pair_finished$/i) && ($is_admin || ($authorized_user eq $username))) $]
 	[-
 	# get pairing start time
-	$sth = $ls->{dbh} -> prepare ("SELECT time_stamp FROM log WHERE action = 'pair' ORDER BY time_stamp DESC LIMIT 1");
+	$sth = $ls -> prepare ("SELECT time_stamp FROM log WHERE action = 'pair' ORDER BY time_stamp DESC LIMIT 1");
 	$sth -> execute ;
 	$d = $sth -> fetchrow_hashref || die $!;
 	$pairing_start_time = $d->{time_stamp};
-	$q_pairing_start_time = $ls->{dbh}->quote($pairing_start_time);
+	$q_pairing_start_time = $ls->quote($pairing_start_time);
 	$sth->finish;
 
 	# get paired rfid
-	$sth = $ls->{dbh}->prepare("SELECT rfid FROM log WHERE source = 'rfid' AND action = 'unauthorized' AND time_stamp > $q_pairing_start_time ORDER BY time_stamp DESC LIMIT 1");
+	$sth = $ls->prepare("SELECT rfid FROM log WHERE source = 'rfid' AND action = 'unauthorized' AND time_stamp > $q_pairing_start_time ORDER BY time_stamp DESC LIMIT 1");
 	$sth->execute;
 
 	if ($d = $sth->fetchrow_hashref) {
 		$paired_rfid = $d->{rfid};
 		if ($paired_rfid) {
 			# rfid detected
-			$q_paired_rfid = $ls->{dbh}->quote($paired_rfid);
+			$q_paired_rfid = $ls->quote($paired_rfid);
 			$sth->finish;
 		
 			# check if it it in use...
-			$sth2 = $ls->{dbh}->prepare("SELECT id, username FROM users WHERE rfid = $q_paired_rfid");
+			$sth2 = $ls->prepare("SELECT id, username FROM users WHERE rfid = $q_paired_rfid");
 			$sth2->execute;
 			if ($sth2->rows) {
 				# in use
@@ -264,8 +264,8 @@
 			else {
 				# not in use...
 				# assign it to user...
-				$q_paired_rfid = $ls->{dbh}->quote($paired_rfid);
-				$sth3 = $ls->{dbh} -> prepare ("UPDATE users SET `rfid` = $q_paired_rfid \
+				$q_paired_rfid = $ls->quote($paired_rfid);
+				$sth3 = $ls -> prepare ("UPDATE users SET `rfid` = $q_paired_rfid \
 																				WHERE id = $q_id") ;
 				$sth3->execute;
 				$sth3->finish;
@@ -287,7 +287,7 @@
 
 [$ if (($fdat{a} =~ /^unpair$/i) && ($is_admin || ($authorized_user eq $username))) $]
 	[-
-	$sth = $ls->{dbh} -> prepare ("UPDATE users SET `rfid` = '' \
+	$sth = $ls -> prepare ("UPDATE users SET `rfid` = '' \
 																 WHERE id = $q_id") ;
 	$sth->execute;
 	$sth->finish;
@@ -299,7 +299,7 @@
 <!-- start of content -->
 [$ if ($is_admin || ($authorized_user eq $username)) $]
 [- 
-	$sth = $ls->{dbh} -> prepare ("SELECT * from users WHERE id = " . $ls->{dbh}->quote($fdat{id})) ;
+	$sth = $ls -> prepare ("SELECT * from users WHERE id = " . $ls->quote($fdat{id})) ;
 	$sth -> execute ;
 -]
 [$ if ($d = $sth -> fetchrow_hashref) $]
@@ -471,8 +471,8 @@
 [- $sth->finish; -]
 <div class="log">
 [- 
-	$q_username = $ls->{dbh}->quote($username);
-	$sth = $ls->{dbh}->prepare("SELECT * from log WHERE `user` = $q_username AND action != 'lock' ORDER BY time_stamp DESC LIMIT 20") ;
+	$q_username = $ls->quote($username);
+	$sth = $ls->prepare("SELECT * from log WHERE `user` = $q_username AND action != 'lock' ORDER BY time_stamp DESC LIMIT 20") ;
 
 	# excute the query
 	$sth -> execute ;
