@@ -13,8 +13,8 @@ sub rfid_reader {
 	$port_obj->databits(8);
 	$port_obj->stopbits(1);
 	$port_obj->parity("none");
-#	$port_obj->read_const_time(2000);
-#	$port_obj->read_char_time(2000);
+	$port_obj->read_const_time(20);
+	$port_obj->read_char_time(0);
 
 	while (1) {
 	
