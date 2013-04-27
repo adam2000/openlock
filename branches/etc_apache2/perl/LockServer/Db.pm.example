@@ -1,0 +1,13 @@
+package LockServer::Db;
+
+use strict;
+use warnings;
+use DBI;
+
+use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', 'my_password';
+
+sub my_connect {
+	return DBI->connect(MY_DBI) or die $!;
+}
+
+1;
