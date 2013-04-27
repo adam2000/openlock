@@ -9,9 +9,9 @@
 [-
 	use LockServer::Db;
 	
-	$ls = new LockServer::Db;
+	$ls = LockServer::Db->my_connect;
 	
-	$sth = $ls->{dbh} -> prepare ("SELECT * from log where action != 'lock' AND time_stamp > (NOW() - INTERVAL 1 DAY) ORDER BY time_stamp DESC") ;
+	$sth = $ls -> prepare ("SELECT * from log where action != 'lock' AND time_stamp > (NOW() - INTERVAL 1 DAY) ORDER BY time_stamp DESC") ;
 
 	$sth -> execute ;
 -]
