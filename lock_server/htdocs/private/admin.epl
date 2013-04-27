@@ -9,12 +9,12 @@
 	use LockServer::Db;
 	use Data::Dumper;
 	
-	$ls = LockServer::Db->new;
+	$ls = LockServer::Db->my_connect;
 	
 	# check if the user is admin
 	$authorized_user = $req_rec->user;
-	$quoted_authorized_user = $ls->{dbh}->quote($authorized_user);
-	$sth = $ls->{dbh}->prepare("SELECT admin from users WHERE username = $quoted_authorized_user AND admin = 1");
+	$quoted_authorized_user = $ls->quote($authorized_user);
+	$sth = $ls->prepare("SELECT admin from users WHERE username = $quoted_authorized_user AND admin = 1");
 	$sth->execute;
 	$is_admin = $sth->fetchrow; 
 	$sth->finish;
@@ -22,15 +22,15 @@
 [$ if ($fdat{a} =~ /^add/i) $]
 	[-
 	# insert new user
-	$q_name = $ls->{dbh}->quote($fdat{name});
-	$sth = $ls->{dbh}->prepare("INSERT INTO users (`name`, `active_from`) VALUES ($q_name, NOW())");
+	$q_name = $ls->quote($fdat{name});
+	$sth = $ls->prepare("INSERT INTO users (`name`, `active_from`) VALUES ($q_name, NOW())");
 	$sth->execute;
 	$sth->finish;
-	$http_headers_out{'Location'} = 'detail.epl?a=edit&id=' . $ls->{dbh}->{mysql_insertid};
+	$http_headers_out{'Location'} = 'detail.epl?a=edit&id=' . $ls->{mysql_insertid};
 	-]
 [$ endif $]
 [-
-	$sth = $ls->{dbh} -> prepare ("SELECT * from users ORDER BY `group` DESC, name") ;
+	$sth = $ls -> prepare ("SELECT * from users ORDER BY `group` DESC, name") ;
 
 	# excute the query
 	$sth -> execute ;
