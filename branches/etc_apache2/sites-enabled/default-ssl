@@ -16,7 +16,7 @@ PerlRequire /etc/apache2/perl/startup.pl
 
 	PerlSetVar LockServerTicketDB "DBI:mysql:database=lock_server;host=127.0.0.1"
 	PerlSetVar LockServerTicketDBUser "lock_server_web"
-	PerlSetVar LockServerTicketDBPassword "icae6meeD9pie0ee"
+	PerlSetVar LockServerTicketDBPassword "my_password"
 	PerlSetVar LockServerTicketTable tickets:ticket_hash:ts
 	PerlSetVar LockServerTicketUserTable users:username:password
 	PerlSetVar LockServerTicketPasswordStyle md5
