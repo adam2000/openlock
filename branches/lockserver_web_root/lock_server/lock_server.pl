@@ -35,7 +35,7 @@ else {
 # get defaults from db
 my $LOCK_PIN = get_defaults('lock_pin') || 0;
 my $CONTACT_PIN = get_defaults('contact_pin') || 13;
-my $XML_RPC_PORT = get_defaults('xml_rpc_port') || 1234;
+my $RPC_PORT = get_defaults('rpc_port') || 4004;
 
 $SIG{INT} = \&stop_lock_server;
 
@@ -47,83 +47,35 @@ Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_GPIO_P1_26,
 						   &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
 
 ls_lock();
-syslog('info', "locked...");
+#syslog('info', "locked...");
 
 # start servers...
 my $port_name = '/dev/ttyAMA0';
 
-my $thr_rfid_reader = threads->create('rfid_reader2');
+my $thr_rfid_reader = threads->create('rfid_reader');
 syslog('info', "rfid reader thread started...");
 
 my $thr_button = threads->create('wait_for_button');
 syslog('info', "button listener thread started...");
 
 my $thr_rpc = threads->create('wait_for_rpc');
-syslog('info', "RPC server thread started, listening on port $XML_RPC_PORT");
+syslog('info', "RPC server thread started, listening on port $RPC_PORT");
 
 syslog('info', "$0 started");
 
 while (threads->list() > 0) {
 	# do nothing
+	usleep(1000_000);
 }
 syslog('info', "all threads stopped...");
 syslog('info', "$0 stopped");
 ls_lock();
-syslog('info', "locked...");
+#syslog('info', "locked...");
 exit 1;
 
 ## END MAIN
 
 sub rfid_reader {
-	my ($port_obj, $count_in, $c);
-	my $rfid = '';
-	$port_obj = new Device::SerialPort($port_name) || die "Can't open $port_name: $!\n"; #, $quiet, $lockfile)
-	$port_obj->baudrate(9600);
-	$port_obj->databits(8);
-	$port_obj->stopbits(1);
-	$port_obj->parity("none");
-#	$port_obj->read_const_time(2000);
-#	$port_obj->read_char_time(2000);
-
-	while (1) {
-		($count_in, $c) = $port_obj->read(1);
-		unless ($count_in) {
-			next;
-		}
-		
-		unless (ord($c) == 13) {
-			$rfid .= $c;
-		}
-		else {
-			# we got a rfid tag...
-			my $dbh_thr = LockServer::Db->my_connect or warn $!;
-			if ($dbh_thr) {
-				my $sth_thr = $dbh_thr->prepare(qq[SELECT `username`, `name`, `active`, `sound_on_rfid_open` FROM users WHERE rfid = ] . $dbh_thr->quote($rfid) . " AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`))");
-				$sth_thr->execute || warn $!;
-				my ($user, $name, $active, $sound_on_rfid_open) = $sth_thr->fetchrow;
-				$sth_thr->finish;
-				$dbh_thr->disconnect;
-
-				if ($active) {
-					unlock_rfid($user || $name, $rfid);
-				}
-				else {
-					db_log(undef, $rfid, 'unauthorized', 'rfid');
-					syslog('info', "rfid $rfid not authorized");
-
-#	 				brute force resitance
-#					usleep(1000_000);
-
-				}
-
-			}
-			$rfid = '';
-		}		
-		
-	}
-}
-
-sub rfid_reader2 {
 	my ($port_obj, $count_in, $c);
 	my $rfid = '';
 	$port_obj = new Device::SerialPort($port_name) || die "Can't open $port_name: $!\n"; #, $quiet, $lockfile)
@@ -172,13 +124,14 @@ sub rfid_reader2 {
 }
 
 sub wait_for_button {
+	# need to implement...
 	while (1) {
 		usleep(200_000);
 	}
 }
 
 sub wait_for_rpc {
-	my $server = AnyEvent::JSONRPC::TCP::Server->new(address => '127.0.0.1', port => $XML_RPC_PORT );
+	my $server = AnyEvent::JSONRPC::TCP::Server->new(address => '127.0.0.1', port => $RPC_PORT );
 	$server->reg_cb(
 		unlock => \&rpc_handler_unlock,
 		validate => \&rpc_handler_validate,
