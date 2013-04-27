@@ -3,8 +3,7 @@
 use strict;
 use Apache2::RequestUtil;
 use Apache2::Const;
-use RPC::XML;
-use RPC::XML::Client;
+use AnyEvent::JSONRPC::TCP::Client;
 use Data::Dumper;
 
 my $r = Apache2::RequestUtil->request;
@@ -12,14 +11,18 @@ my $r = Apache2::RequestUtil->request;
 
 my $user = $r->user;
 
-my $client = RPC::XML::Client->new('http://localhost:1234/') or die "Could not start client: $@\n";
-
+#my $client = RPC::XML::Client->new('http://localhost:1234/') or die "Could not start client: $@\n";
+my $client = AnyEvent::JSONRPC::TCP::Client->new(
+	host => '127.0.0.1',
+	port => 1234,
+);
 #$r->log_error($r->connection->user());
-my $var = RPC::XML::string->new("$user");
-my $resp = $client->send_request('lockserver.validate', $var);
+#my $var = RPC::XML::string->new("$user");
+#my $resp = $client->send_request('lockserver.validate', $var);
+my $res = $client->call( validate => $user )->recv;
 
-if ($resp->value) {
-	$client->send_request('lockserver.unlock', $var);
+if ($res) {
+	$client->call( unlock => $user )->recv;
 	$r->headers_out->set(Location => '/private/unlock/door_open.pl');
 }
 else {

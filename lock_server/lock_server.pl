@@ -5,7 +5,7 @@ use Data::Dumper;
 use Device::BCM2835;
 use Device::SerialPort;
 use Sys::Syslog;
-use RPC::XML::Server;
+use AnyEvent::JSONRPC::TCP::Server;
 use DBI;
 use Time::HiRes qw( usleep );
 use threads;
@@ -51,44 +51,20 @@ syslog('info', "locked...");
 
 # start servers...
 my $port_name = '/dev/ttyAMA0';
-my $thr_unlock_web;
-my $thr_rfid_reader = threads->create('rfid_reader');
+
+my $thr_rfid_reader = threads->create('rfid_reader2');
 syslog('info', "rfid reader thread started...");
 
 my $thr_button = threads->create('wait_for_button');
 syslog('info', "button listener thread started...");
 
-my $rpc = RPC::XML::Server->new(host => 'localhost', port => $XML_RPC_PORT);
-syslog('info', "RPC::XML server started, listening on port $XML_RPC_PORT");
-$rpc->add_method({	name => 'lockserver.unlock',
-					signature => ['string string'],
-					code => \&xml_rpc_hander_unlock });
-
-$rpc->add_method({	name => 'lockserver.validate',
-					signature => ['string string'],
-					code => \&xml_rpc_hander_validate });
-
-my $thr_rpc = threads->create(sub {$rpc->server_loop});
-syslog('info', "RPC::XML listener thread started...");
+my $thr_rpc = threads->create('wait_for_rpc');
+syslog('info', "RPC server thread started, listening on port $XML_RPC_PORT");
 
 syslog('info', "$0 started");
 
 while (threads->list() > 0) {
 	# do nothing
-#	foreach (threads->list(threads::all)) {
-#		print Dumper($_->tid);
-#	}
-#	sleep 2;
-
-#	if (ref($thr_unlock_web)) {
-#		if ($thr_unlock_web->is_running) {
-#			print $thr_unlock_web->tid . " is running\n";
-#		}
-#		else {
-#			print $thr_unlock_web->tid . " is done\n";
-#		}
-#	}
-#	undef $thr_unlock_web;
 }
 syslog('info', "all threads stopped...");
 syslog('info', "$0 stopped");
@@ -155,8 +131,8 @@ sub rfid_reader2 {
 	$port_obj->databits(8);
 	$port_obj->stopbits(1);
 	$port_obj->parity("none");
-#	$port_obj->read_const_time(2000);
-#	$port_obj->read_char_time(2000);
+	$port_obj->read_const_time(20);
+	$port_obj->read_char_time(0);
 
 	while (1) {
 	
@@ -167,7 +143,28 @@ sub rfid_reader2 {
 			$rfid .= $c;
 		}
 		else {
-			print Dumper($rfid);
+			# we got a rfid tag...
+			my $dbh_thr = LockServer::Db->my_connect or warn $!;
+			if ($dbh_thr) {
+				my $sth_thr = $dbh_thr->prepare(qq[SELECT `username`, `name`, `active`, `sound_on_rfid_open` FROM users WHERE rfid = ] . $dbh_thr->quote($rfid) . " AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`))");
+				$sth_thr->execute || warn $!;
+				my ($user, $name, $active, $sound_on_rfid_open) = $sth_thr->fetchrow;
+				$sth_thr->finish;
+				$dbh_thr->disconnect;
+
+				if ($active) {
+					unlock_rfid($user || $name, $rfid);
+				}
+				else {
+					db_log(undef, $rfid, 'unauthorized', 'rfid');
+					syslog('info', "rfid $rfid not authorized");
+
+#	 				brute force resitance
+#					usleep(1000_000);
+
+				}
+
+			}
 			$rfid = '';
 		}
 
@@ -180,9 +177,19 @@ sub wait_for_button {
 	}
 }
 
-sub xml_rpc_hander_unlock {
+sub wait_for_rpc {
+	my $server = AnyEvent::JSONRPC::TCP::Server->new(address => '127.0.0.1', port => $XML_RPC_PORT );
+	$server->reg_cb(
+		unlock => \&rpc_handler_unlock,
+		validate => \&rpc_handler_validate,
+	);
+
+	AnyEvent->condvar->recv;
+}
+
+sub rpc_handler_unlock {
 	my $i;
-	my ($sender, $user) = @_;
+	my ($res_cv, $user) = @_;
 
 	my $dbh_thr = LockServer::Db->my_connect or warn $!;
 	if ($dbh_thr) {
@@ -193,10 +200,11 @@ sub xml_rpc_hander_unlock {
 		$dbh_thr->disconnect;
 
 		if ($active) {
-			$thr_unlock_web = threads->create('unlock_web', $user);
-			$thr_unlock_web->detach();
+			$res_cv->result(1);
+			unlock_web($user);
 		}
 		else {
+			$res_cv->result(1);
 			db_log($user, undef, 'unauthorized', 'web');
 			syslog('info', "user $user not authorized");
 
@@ -206,9 +214,9 @@ sub xml_rpc_hander_unlock {
 	}
 }
 
-sub xml_rpc_hander_validate {
+sub rpc_handler_validate {
 	my $i;
-	my ($sender, $user) = @_;
+	my ($res_cv, $user) = @_;
 
 	my $dbh_thr = LockServer::Db->my_connect or warn $!;
 	if ($dbh_thr) {
@@ -221,10 +229,10 @@ sub xml_rpc_hander_validate {
 #		db_log($user, undef, 'validate', 'web');
 #		syslog('info', "user $user validate");
 		if ($active) {
-			return 1;
+			$res_cv->result(1);
 		}
 		else {
-			return undef;
+			$res_cv->result(undef);
 		}
 	}
 }
