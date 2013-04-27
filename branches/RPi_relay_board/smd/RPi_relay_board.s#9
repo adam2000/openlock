@@ -8323,7 +8323,7 @@ Source. http://cache.national.com/ds/LM/LM2937-2.5.pdf</description>
 <part name="OK2" library="optocoupler" deviceset="SFH620" device="6"/>
 <part name="OK3" library="optocoupler" deviceset="SFH620" device="6"/>
 <part name="OK4" library="optocoupler" deviceset="SFH620" device="6"/>
-<part name="F3" library="fuse" deviceset="SHK20L" device="">
+<part name="F1" library="fuse" deviceset="SHK20L" device="">
 <attribute name="MF" value=""/>
 <attribute name="MPN" value=""/>
 <attribute name="OC_FARNELL" value="unknown"/>
@@ -8339,6 +8339,7 @@ Source. http://cache.national.com/ds/LM/LM2937-2.5.pdf</description>
 <part name="5V_DC" library="SparkFun" deviceset="M02" device="PTH3_5MM"/>
 <part name="GND20" library="supply1" deviceset="GND" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
+<part name="C12" library="SparkFun" deviceset="CAP_POL" device="7343" value="330nF"/>
 </parts>
 <sheets>
 <sheet>
@@ -8435,7 +8436,7 @@ Circuit</text>
 <instance part="OK2" gate="G$1" x="167.64" y="43.18" rot="R180"/>
 <instance part="OK3" gate="G$1" x="165.1" y="83.82"/>
 <instance part="OK4" gate="G$1" x="165.1" y="106.68"/>
-<instance part="F3" gate="G$1" x="27.94" y="93.98"/>
+<instance part="F1" gate="G$1" x="27.94" y="93.98"/>
 <instance part="IC1" gate="A" x="71.12" y="109.22"/>
 <instance part="12V_DC" gate="G$1" x="12.7" y="93.98"/>
 <instance part="RFID" gate="G$1" x="236.22" y="-25.4" rot="R180"/>
@@ -8446,6 +8447,7 @@ Circuit</text>
 <instance part="5V_DC" gate="G$1" x="12.7" y="127"/>
 <instance part="GND20" gate="1" x="30.48" y="121.92"/>
 <instance part="P+9" gate="1" x="30.48" y="137.16"/>
+<instance part="C12" gate="G$1" x="157.48" y="162.56"/>
 </instances>
 <busses>
 </busses>
@@ -8486,7 +8488,7 @@ Circuit</text>
 <junction x="71.12" y="66.04"/>
 <pinref part="C10" gate="G$1" pin="2"/>
 <wire x1="83.82" y1="66.04" x2="83.82" y2="68.58" width="0.1524" layer="91"/>
-<pinref part="F3" gate="G$1" pin="2A"/>
+<pinref part="F1" gate="G$1" pin="2A"/>
 <wire x1="33.02" y1="93.98" x2="35.56" y2="93.98" width="0.1524" layer="91"/>
 <junction x="35.56" y="93.98"/>
 <pinref part="IC1" gate="A" pin="GND"/>
@@ -8570,6 +8572,9 @@ Circuit</text>
 <pinref part="C11" gate="G$1" pin="2"/>
 <pinref part="GND19" gate="1" pin="GND"/>
 <wire x1="170.18" y1="157.48" x2="170.18" y2="154.94" width="0.1524" layer="91"/>
+<pinref part="C12" gate="G$1" pin="-"/>
+<wire x1="157.48" y1="157.48" x2="170.18" y2="157.48" width="0.1524" layer="91"/>
+<junction x="170.18" y="157.48"/>
 </segment>
 <segment>
 <pinref part="GND14" gate="1" pin="GND"/>
@@ -8955,6 +8960,9 @@ Circuit</text>
 <pinref part="C11" gate="G$1" pin="1"/>
 <wire x1="170.18" y1="170.18" x2="170.18" y2="165.1" width="0.1524" layer="91"/>
 <junction x="170.18" y="170.18"/>
+<pinref part="C12" gate="G$1" pin="+"/>
+<wire x1="157.48" y1="165.1" x2="157.48" y2="170.18" width="0.1524" layer="91"/>
+<wire x1="157.48" y1="170.18" x2="170.18" y2="170.18" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$14" class="0">
@@ -9006,7 +9014,7 @@ Circuit</text>
 </net>
 <net name="N$17" class="0">
 <segment>
-<pinref part="F3" gate="G$1" pin="1A"/>
+<pinref part="F1" gate="G$1" pin="1A"/>
 <pinref part="12V_DC" gate="G$1" pin="1"/>
 <wire x1="22.86" y1="93.98" x2="20.32" y2="93.98" width="0.1524" layer="91"/>
 </segment>
