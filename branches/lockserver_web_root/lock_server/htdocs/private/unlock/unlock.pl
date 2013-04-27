@@ -19,13 +19,11 @@ my $client = AnyEvent::JSONRPC::TCP::Client->new(
 	host => '127.0.0.1',
 	port => $RPC_PORT,
 );
-#$r->log_error($r->connection->user());
-#my $var = RPC::XML::string->new("$user");
-#my $resp = $client->send_request('lockserver.validate', $var);
-my $res = $client->call( validate => $user )->recv;
+
+my $res = $client->call( validate_web => $user )->recv;
 
 if ($res) {
-	$client->call( unlock => $user )->recv;
+	$client->call( unlock_web => $user )->recv;
 	$r->headers_out->set(Location => '/private/unlock/door_open.pl');
 }
 else {
