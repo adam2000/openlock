@@ -38,10 +38,16 @@ $SIG{INT} = \&stop_server;
 
 # set up and clear lock interface
 Device::BCM2835::init() || die "Could not init library";
-Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_GPIO_P1_13, 
+ # outputs
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_13, 
 						   &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
-Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_GPIO_P1_26, 
-						   &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_26, 
+                            &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
+# inputs
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_26, 
+                            &Device::BCM2835::BCM2835_GPIO_FSEL_INPT );
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_26, 
+                            &Device::BCM2835::BCM2835_GPIO_FSEL_INPT);
 
 ls_lock();
 #syslog('info', "locked...");
@@ -265,11 +271,11 @@ sub unlock_web {
 }
 
 sub ls_unlock {
-	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_GPIO_P1_13, 1);
-	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_GPIO_P1_26, 1);
+	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_V2_GPIO_P1_26, 1);
+	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_V2_GPIO_P1_13, 1);
 }
 
 sub ls_lock {
-	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_GPIO_P1_13, 0);
-	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_GPIO_P1_26, 0);
+	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_V2_GPIO_P1_26, 0);
+	Device::BCM2835::gpio_write(&Device::BCM2835::RPI_V2_GPIO_P1_13, 0);
 }
