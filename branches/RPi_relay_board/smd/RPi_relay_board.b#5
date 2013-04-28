@@ -120,6 +120,7 @@ v.2.1 2013</text>
 <text x="82.55" y="22.86" size="1.016" layer="26" rot="MR270" align="bottom-center">INPUT 2</text>
 <text x="82.55" y="36.83" size="1.016" layer="26" rot="MR270" align="bottom-center">RELAY 1</text>
 <text x="82.55" y="46.99" size="1.016" layer="26" rot="MR270" align="bottom-center">RELAY 2</text>
+<text x="45.72" y="-5.08" size="1.27" layer="26">(c) Kristoffer Ek stoffer@skulp.net</text>
 </plain>
 <libraries>
 <library name="optocoupler">
