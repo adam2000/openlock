@@ -8337,7 +8337,6 @@ Source. http://cache.national.com/ds/LM/LM2937-2.5.pdf</description>
 <part name="OUTPUT_1" library="SparkFun" deviceset="M02" device="PTH3_5MM"/>
 <part name="OUTPUT_2" library="SparkFun" deviceset="M02" device="PTH3_5MM"/>
 <part name="5V_DC" library="SparkFun" deviceset="M02" device="PTH3_5MM"/>
-<part name="GND20" library="supply1" deviceset="GND" device=""/>
 <part name="P+9" library="supply1" deviceset="+5V" device=""/>
 <part name="C12" library="SparkFun" deviceset="CAP_POL" device="7343" value="330nF"/>
 </parts>
@@ -8445,7 +8444,6 @@ Circuit</text>
 <instance part="OUTPUT_1" gate="G$1" x="312.42" y="12.7" rot="R180"/>
 <instance part="OUTPUT_2" gate="G$1" x="312.42" y="43.18" rot="R180"/>
 <instance part="5V_DC" gate="G$1" x="12.7" y="127"/>
-<instance part="GND20" gate="1" x="30.48" y="121.92"/>
 <instance part="P+9" gate="1" x="30.48" y="137.16"/>
 <instance part="C12" gate="G$1" x="157.48" y="162.56"/>
 </instances>
@@ -8604,12 +8602,6 @@ Circuit</text>
 <pinref part="GND5" gate="1" pin="GND"/>
 <wire x1="177.8" y1="40.64" x2="180.34" y2="40.64" width="0.1524" layer="91"/>
 <wire x1="180.34" y1="40.64" x2="180.34" y2="35.56" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="5V_DC" gate="G$1" pin="1"/>
-<pinref part="GND20" gate="1" pin="GND"/>
-<wire x1="20.32" y1="127" x2="30.48" y2="127" width="0.1524" layer="91"/>
-<wire x1="30.48" y1="127" x2="30.48" y2="124.46" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$51" class="0">
@@ -9017,6 +9009,10 @@ Circuit</text>
 <pinref part="F1" gate="G$1" pin="1A"/>
 <pinref part="12V_DC" gate="G$1" pin="1"/>
 <wire x1="22.86" y1="93.98" x2="20.32" y2="93.98" width="0.1524" layer="91"/>
+<pinref part="5V_DC" gate="G$1" pin="1"/>
+<wire x1="20.32" y1="127" x2="22.86" y2="127" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="127" x2="22.86" y2="93.98" width="0.1524" layer="91"/>
+<junction x="22.86" y="93.98"/>
 </segment>
 </net>
 <net name="N$21" class="0">
