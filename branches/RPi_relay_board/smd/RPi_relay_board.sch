@@ -8280,7 +8280,7 @@ Circuit</text>
 <instances>
 <instance part="GND" gate="1" x="58.42" y="86.36"/>
 <instance part="GND11" gate="1" x="152.4" y="71.12"/>
-<instance part="GND10" gate="1" x="152.4" y="22.86"/>
+<instance part="GND10" gate="1" x="142.24" y="25.4"/>
 <instance part="24V" gate="1" x="58.42" y="124.46"/>
 <instance part="R5" gate="G$1" x="187.96" y="45.72" rot="R180"/>
 <instance part="R7" gate="G$1" x="142.24" y="109.22" rot="R180"/>
@@ -8292,10 +8292,10 @@ Circuit</text>
 <instance part="K1" gate="1" x="213.36" y="76.2" rot="R90"/>
 <instance part="K1" gate="2" x="276.86" y="15.24"/>
 <instance part="K1" gate="3" x="276.86" y="0"/>
-<instance part="R3" gate="G$1" x="152.4" y="33.02" rot="R270"/>
-<instance part="GND2" gate="1" x="152.4" y="-12.7"/>
+<instance part="R3" gate="G$1" x="142.24" y="35.56" rot="R270"/>
+<instance part="GND2" gate="1" x="142.24" y="-10.16"/>
 <instance part="R4" gate="G$1" x="187.96" y="10.16" rot="R180"/>
-<instance part="R2" gate="G$1" x="152.4" y="-2.54" rot="R270"/>
+<instance part="R2" gate="G$1" x="142.24" y="0" rot="R270"/>
 <instance part="GND3" gate="1" x="180.34" y="-2.54"/>
 <instance part="GND5" gate="1" x="180.34" y="33.02"/>
 <instance part="24V1" gate="1" x="200.66" y="116.84"/>
@@ -8343,8 +8343,8 @@ Circuit</text>
 <instance part="T3" gate="G$1" x="182.88" y="170.18"/>
 <instance part="24V5" gate="1" x="170.18" y="190.5"/>
 <instance part="GND19" gate="1" x="170.18" y="152.4"/>
-<instance part="P+2" gate="G$1" x="152.4" y="12.7"/>
-<instance part="P+3" gate="G$1" x="152.4" y="48.26"/>
+<instance part="P+2" gate="G$1" x="149.86" y="5.08"/>
+<instance part="P+3" gate="G$1" x="149.86" y="40.64"/>
 <instance part="P+4" gate="G$1" x="205.74" y="55.88"/>
 <instance part="P+5" gate="G$1" x="205.74" y="20.32"/>
 <instance part="GND17" gate="1" x="302.26" y="-2.54" rot="MR0"/>
@@ -8404,12 +8404,12 @@ Circuit</text>
 <segment>
 <pinref part="R3" gate="G$1" pin="2"/>
 <pinref part="GND10" gate="1" pin="GND"/>
-<wire x1="152.4" y1="27.94" x2="152.4" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="30.48" x2="142.24" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="R2" gate="G$1" pin="2"/>
 <pinref part="GND2" gate="1" pin="GND"/>
-<wire x1="152.4" y1="-7.62" x2="152.4" y2="-10.16" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="-5.08" x2="142.24" y2="-7.62" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND6" gate="1" pin="GND"/>
@@ -8537,30 +8537,30 @@ Circuit</text>
 </net>
 <net name="N$1" class="0">
 <segment>
-<pinref part="R3" gate="G$1" pin="1"/>
-<wire x1="152.4" y1="40.64" x2="152.4" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="116.84" y1="40.64" x2="152.4" y2="40.64" width="0.1524" layer="91"/>
-<wire x1="116.84" y1="40.64" x2="116.84" y2="38.1" width="0.1524" layer="91"/>
 <wire x1="116.84" y1="38.1" x2="25.4" y2="38.1" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="38.1" x2="25.4" y2="-30.48" width="0.1524" layer="91"/>
 <pinref part="RPI" gate="A" pin="GPIO_17_(P11)"/>
 <wire x1="25.4" y1="-30.48" x2="58.42" y2="-30.48" width="0.1524" layer="91"/>
-<pinref part="OK2" gate="G$1" pin="C"/>
-<wire x1="152.4" y1="40.64" x2="154.94" y2="40.64" width="0.1524" layer="91"/>
-<junction x="152.4" y="40.64"/>
+<wire x1="116.84" y1="38.1" x2="116.84" y2="45.72" width="0.1524" layer="91"/>
+<pinref part="OK2" gate="G$1" pin="E"/>
+<wire x1="116.84" y1="45.72" x2="142.24" y2="45.72" width="0.1524" layer="91"/>
+<pinref part="R3" gate="G$1" pin="1"/>
+<wire x1="142.24" y1="45.72" x2="154.94" y2="45.72" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="40.64" x2="142.24" y2="45.72" width="0.1524" layer="91"/>
+<junction x="142.24" y="45.72"/>
 </segment>
 </net>
 <net name="N$4" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="152.4" y1="5.08" x2="152.4" y2="2.54" width="0.1524" layer="91"/>
-<wire x1="152.4" y1="5.08" x2="27.94" y2="5.08" width="0.1524" layer="91"/>
-<wire x1="27.94" y1="5.08" x2="27.94" y2="-25.4" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="10.16" x2="142.24" y2="5.08" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="10.16" x2="27.94" y2="10.16" width="0.1524" layer="91"/>
+<wire x1="27.94" y1="10.16" x2="27.94" y2="-25.4" width="0.1524" layer="91"/>
 <pinref part="RPI" gate="A" pin="GPIO_4_(GPCLK0)_(P7)"/>
 <wire x1="27.94" y1="-25.4" x2="58.42" y2="-25.4" width="0.1524" layer="91"/>
-<pinref part="OK1" gate="G$1" pin="C"/>
-<wire x1="152.4" y1="5.08" x2="154.94" y2="5.08" width="0.1524" layer="91"/>
-<junction x="152.4" y="5.08"/>
+<pinref part="OK1" gate="G$1" pin="E"/>
+<wire x1="154.94" y1="10.16" x2="142.24" y2="10.16" width="0.1524" layer="91"/>
+<junction x="142.24" y="10.16"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -8805,18 +8805,6 @@ Circuit</text>
 <junction x="83.82" y="76.2"/>
 </segment>
 <segment>
-<wire x1="152.4" y1="10.16" x2="152.4" y2="12.7" width="0.1524" layer="91"/>
-<pinref part="P+2" gate="G$1" pin="3.3V"/>
-<pinref part="OK1" gate="G$1" pin="E"/>
-<wire x1="154.94" y1="10.16" x2="152.4" y2="10.16" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<wire x1="152.4" y1="45.72" x2="152.4" y2="48.26" width="0.1524" layer="91"/>
-<pinref part="P+3" gate="G$1" pin="3.3V"/>
-<pinref part="OK2" gate="G$1" pin="E"/>
-<wire x1="152.4" y1="45.72" x2="154.94" y2="45.72" width="0.1524" layer="91"/>
-</segment>
-<segment>
 <wire x1="205.74" y1="48.26" x2="205.74" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="P+4" gate="G$1" pin="3.3V"/>
 <pinref part="INPUT_2" gate="G$1" pin="1"/>
@@ -8832,6 +8820,16 @@ Circuit</text>
 <pinref part="P+12" gate="G$1" pin="3.3V"/>
 <pinref part="U1" gate="G$1" pin="VCC"/>
 <wire x1="165.1" y1="-12.7" x2="165.1" y2="-15.24" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+3" gate="G$1" pin="3.3V"/>
+<pinref part="OK2" gate="G$1" pin="C"/>
+<wire x1="149.86" y1="40.64" x2="154.94" y2="40.64" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+2" gate="G$1" pin="3.3V"/>
+<pinref part="OK1" gate="G$1" pin="C"/>
+<wire x1="149.86" y1="5.08" x2="154.94" y2="5.08" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">

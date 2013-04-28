@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="dots" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.00625" unitdist="inch" unit="inch" style="dots" multiple="1" display="no" altdistance="0.0125" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -2063,7 +2063,16 @@ design rules under a new name.</description>
 <contactref element="OUTPUT_1" pad="2"/>
 <contactref element="OUTPUT_2" pad="2"/>
 <contactref element="C9" pad="C"/>
-<wire x1="67.824684375" y1="8.23955625" x2="69.293775" y2="0.938065625" width="0" layer="19" extent="1-1"/>
+<wire x1="42.54" y1="6.35" x2="42.54" y2="0" width="0.6096" layer="1"/>
+<wire x1="42.54" y1="6.35" x2="42.54" y2="3.32875" width="0.6096" layer="1"/>
+<wire x1="42.54" y1="3.32875" x2="42.38625" y2="3.175" width="0.6096" layer="1"/>
+<wire x1="42.38625" y1="3.175" x2="39.37" y2="3.175" width="0.6096" layer="1"/>
+<via x="39.37" y="3.175" extent="1-16" drill="0.6"/>
+<wire x1="39.37" y1="3.175" x2="34.13125" y2="3.175" width="0.6096" layer="16"/>
+<wire x1="34.13125" y1="3.175" x2="33.17875" y2="4.1275" width="0.6096" layer="16"/>
+<wire x1="33.17875" y1="4.1275" x2="15.24" y2="4.1275" width="0.6096" layer="16"/>
+<wire x1="15.24" y1="4.1275" x2="10.4775" y2="8.89" width="0.6096" layer="16"/>
+<wire x1="10.4775" y1="8.89" x2="10.4775" y2="17.78" width="0.6096" layer="16"/>
 </signal>
 <signal name="N$51">
 <contactref element="R6" pad="1"/>
@@ -2516,6 +2525,8 @@ design rules under a new name.</description>
 <signal name="N$39">
 </signal>
 <signal name="N$33">
+</signal>
+<signal name="N$34">
 </signal>
 </signals>
 </board>
