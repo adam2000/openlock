@@ -7,7 +7,6 @@ use Sys::Syslog;
 use AnyEvent::JSONRPC::TCP::Client;
 use DBI;
 use Time::HiRes qw( usleep );
-use Data::Dumper;
 
 use lib qw( /etc/apache2/perl );
 use LockServer::Db;
@@ -37,16 +36,25 @@ my $RPC_PORT = get_defaults('rpc_port') || 4004;
 $SIG{INT} = \&stop_server;
 
 # main
-# set up and clear lock interface
+# set up lock interface
 Device::BCM2835::init() || die "Could not init library";
-Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_GPIO_P1_13, 
-						   &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
-Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_GPIO_P1_26, 
-						   &Device::BCM2835::BCM2835_GPIO_FSEL_OUTP);
+# inputs
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_07, 
+                            &Device::BCM2835::BCM2835_GPIO_FSEL_INPT );
+Device::BCM2835::gpio_fsel(&Device::BCM2835::RPI_V2_GPIO_P1_11, 
+                            &Device::BCM2835::BCM2835_GPIO_FSEL_INPT);
 
 syslog('info', "$0 started");
 while (1) {
-	usleep(200_000);
+	if (Device::BCM2835::gpio_lev(&Device::BCM2835::RPI_V2_GPIO_P1_07) || Device::BCM2835::gpio_lev(&Device::BCM2835::RPI_V2_GPIO_P1_11)) {
+		my $client = AnyEvent::JSONRPC::TCP::Client->new(
+			host => '127.0.0.1',
+			port => $RPC_PORT,
+		);
+		$client->call( unlock_button => '')->recv;
+		usleep(get_defaults('open_time') * 1000_000);
+	}
+	usleep(100_000);
 }
 
 
