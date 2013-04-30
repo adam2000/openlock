@@ -7,7 +7,6 @@ use Sys::Syslog;
 use AnyEvent::JSONRPC::TCP::Client;
 use DBI;
 use Time::HiRes qw( usleep );
-use Data::Dumper;
 
 use lib qw( /etc/apache2/perl );
 use LockServer::Db;
@@ -62,7 +61,13 @@ while (1) {
 			port => $RPC_PORT,
 		);
 		$client->call( unlock_rfid => $rfid )->recv;
-
+		usleep(get_defaults('open_time') * 1000_000);
+		# discard rfid received while we are open
+		$port_obj->lookclear;
+		do {
+			($count_in, $c) = $port_obj->read(1);
+		}
+		while ($count_in);
 		$rfid = '';
 	}
 

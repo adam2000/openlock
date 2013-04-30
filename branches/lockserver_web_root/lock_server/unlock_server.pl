@@ -55,6 +55,7 @@ $server->reg_cb(
 	unlock_web => \&rpc_handler_unlock_web,
 	validate_web => \&rpc_handler_validate_web,
 	unlock_rfid => \&rpc_handler_unlock_rfid,
+	unlock_button => \&rpc_handler_unlock_button,
 );
 syslog('info', "RPC server started, listening on port $RPC_PORT");
 syslog('info', "$0 started");
@@ -143,6 +144,13 @@ sub rpc_handler_unlock_rfid {
 
 		}
 	}
+}
+
+sub rpc_handler_unlock_button {
+	my ($res_cv) = @_;
+
+	$res_cv->result(undef);
+	unlock_button();
 }
 
 sub stop_server {
@@ -262,6 +270,25 @@ sub unlock_web {
 #		$thr_buzzer->detach;
 #	}
 	db_log($user, undef, 'lock', 'web');
+	syslog('info', "locked...");
+}
+
+sub unlock_button {
+	ls_unlock();
+	my $thr_buzzer;
+#	if ($sound_on_rfid_open) {
+#		$thr_buzzer = threads->create('buzzer', $user);
+#	}
+	db_log('', undef, 'unlock', 'button');
+	syslog('info', "button unlocked");
+	usleep(get_defaults('open_time') * 1000_000);
+
+	ls_lock();
+#	if ($sound_on_rfid_open) {
+#		$thr_buzzer->suspend;
+#		$thr_buzzer->detach;
+#	}
+	db_log('', undef, 'lock', 'button');
 	syslog('info', "locked...");
 }
 
