@@ -4,6 +4,7 @@ use strict;
 use Data::Dumper;
 use Device::BCM2835;
 use Sys::Syslog;
+use AnyEvent;
 use AnyEvent::JSONRPC::TCP::Server;
 use DBI;
 use Time::HiRes qw( usleep );
@@ -34,8 +35,6 @@ my $LOCK_PIN = get_defaults('lock_pin') || 0;
 my $CONTACT_PIN = get_defaults('contact_pin') || 13;
 my $RPC_PORT = get_defaults('rpc_port') || 4004;
 
-$SIG{INT} = \&stop_server;
-
 # set up and clear lock interface
 Device::BCM2835::init() || die "Could not init library";
  # outputs
@@ -61,6 +60,7 @@ syslog('info', "RPC server started, listening on port $RPC_PORT");
 syslog('info', "$0 started");
 
 # runs forever...
+my $s = AnyEvent->signal(signal => 'INT', cb => \&stop_server);
 AnyEvent->condvar->recv;
 
 syslog('info', "all threads stopped...");
@@ -154,7 +154,8 @@ sub rpc_handler_unlock_button {
 }
 
 sub stop_server {
-
+	syslog('info', "$0 stopped");
+	exit 1; 
 }
 
 sub buzzer {
