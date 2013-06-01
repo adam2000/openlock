@@ -9,6 +9,7 @@ use AnyEvent::JSONRPC::TCP::Server;
 use DBI;
 use Time::HiRes qw( usleep );
 use Data::Dumper;
+use Proc::Simple;
 
 use lib qw( /etc/apache2/perl );
 use LockServer::Db;
@@ -85,7 +86,19 @@ sub rpc_handler_unlock_web {
 
 		if ($active) {
 			$res_cv->result(1);
+
+			my $thr_buzzer = Proc::Simple->new();
+			if ($sound_on_rfid_open) {
+				$thr_buzzer->start(\&buzzer, $user);
+			}
+
 			unlock_web($user);
+
+			if ($sound_on_rfid_open) {
+				if ($thr_buzzer->poll) {
+					$thr_buzzer->kill;
+				}
+			}
 		}
 		else {
 			$res_cv->result(undef);
@@ -132,7 +145,19 @@ sub rpc_handler_unlock_rfid {
 
 		if ($active) {
 			$res_cv->result(undef);
+
+			my $thr_buzzer = Proc::Simple->new();
+			if ($sound_on_rfid_open) {
+				$thr_buzzer->start(\&buzzer, $user);
+			}
+
 			unlock_rfid($user || $name, $rfid);
+
+			if ($sound_on_rfid_open) {
+				if ($thr_buzzer->poll) {
+					$thr_buzzer->kill;
+				}
+			}
 		}
 		else {
 			$res_cv->result(undef);
@@ -150,7 +175,19 @@ sub rpc_handler_unlock_button {
 	my ($res_cv) = @_;
 
 	$res_cv->result(undef);
+
+	my $thr_buzzer = Proc::Simple->new();
+#	if ($sound_on_rfid_open) {
+#		$thr_buzzer->start(\&buzzer, $user);
+#	}
+
 	unlock_button();
+
+#	if ($sound_on_rfid_open) {
+#		if ($thr_buzzer->poll) {
+#			$thr_buzzer->kill;
+#		}
+#	}
 }
 
 sub stop_server {
@@ -162,12 +199,12 @@ sub buzzer {
 	my $user = shift;
 	my $sound = get_user_defaults($user, 'sound_file');
 	if (get_user_defaults($user, 'sound_repeat')) {
-#		while (1) {
-#			`/usr/bin/aplay $MY_SERVER_ROOT/sounds/$sound -q`;
-#		}
+		while (1) {
+			`/usr/bin/aplay $MY_SERVER_ROOT/sounds/$sound -q`;
+		}
 	}
 	else {
-#			`/usr/bin/aplay $MY_SERVER_ROOT/sounds/$sound -q`;
+			`/usr/bin/aplay $MY_SERVER_ROOT/sounds/$sound -q`;
 	}
 }
 
@@ -257,19 +294,11 @@ sub unlock_web {
 	my $user = shift;
 
 	ls_unlock();
-	my $thr_buzzer;
-#	if ($sound_on_rfid_open) {
-#		$thr_buzzer = threads->create('buzzer', $user);
-#	}
 	db_log($user, undef, 'unlock', 'web');
 	syslog('info', "user $user unlocked");
 	usleep(get_user_defaults($user, 'open_time') * 1000_000);
 
 	ls_lock();
-#	if ($sound_on_rfid_open) {
-#		$thr_buzzer->suspend;
-#		$thr_buzzer->detach;
-#	}
 	db_log($user, undef, 'lock', 'web');
 	syslog('info', "locked...");
 }
