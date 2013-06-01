@@ -359,7 +359,8 @@
                 <td class="default">&nbsp;</td>
               </tr>
  [$ if $is_admin $]
-<!--             <tr>
+ <!--
+             <tr>
               	<td class="label"><nobr>Tech-room</nobr></td>
 
                 <td class="default">
@@ -369,7 +370,8 @@
                 <input name="tech_group" type="checkbox" id="tech_group" value="1">
 	[$ endif $]
 							 </td>
-              </tr>-->
+              </tr>
+-->
 [$ endif $]
 	        </table></td>
 		    <td align="right" valign="top"><table>
@@ -385,7 +387,7 @@
 		        <td class="label">Open time</td>
 		        <td class="default"><input name="open_time" type="text" id="open_time" value="[+ $d->{'open_time'} +]" size="40"></td>
 	          </tr>
-<!--		      <tr>
+		      <tr>
 
 		        <td class="label">Sound file</td>
 		        <td class="default">[-
@@ -400,7 +402,7 @@
 	              <option value="[+ $_ +]"[+ ($d->{'sound_file'} =~ /^$_$/) ? 'selected' : '' +]>[+ $_ +]</option>
 							[$ endforeach $]
               </select>
-
+<!--
               <form action="load.html" name="form1" method="post" enctype="multipart/form-data">
 <table>  
  <tr class="cell4">
@@ -413,6 +415,7 @@
   </tr>      
 </table>
 </form>[+ Dumper($fdat{file}) +]
+-->
             </td>
 	          </tr>
 		      <tr>
@@ -430,7 +433,7 @@
 						[$ else $]
 						<input name="sound_on_rfid_open" type="checkbox" id="sound_on_rfid_open" value="1">
 						[$ endif $] </td>
-	          </tr>-->
+	          </tr>
    		      <tr>
 		        <td class="label">&nbsp;</td>
 		        <td class="default">&nbsp;</td>
