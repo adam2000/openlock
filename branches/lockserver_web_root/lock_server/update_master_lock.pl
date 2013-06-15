@@ -10,7 +10,7 @@ use Digest::MD5 qw( md5_hex );
 use lib qw( /etc/apache2/perl );
 use LockServer::Db;
 
-use constant GROUP => 'CA Ung';
+my $group = get_defaults('group');
 
 openlog($0, "ndelay,pid", "local0");
 syslog('info', "starting...");
@@ -60,7 +60,7 @@ sub update_poller {
 				if ($dbh_remote = LockServer::Db->my_connect_remote) {
 					# start transaction
 					$dbh_remote->begin_work;
-					$dbh_remote->do(qq[DELETE FROM `users` WHERE `group` = "] . GROUP . qq["]);
+					$dbh_remote->do(qq[DELETE FROM `users` WHERE `group` = "$group"]);
 					$sth = $dbh->prepare(qq[SELECT `username`, `active`, `name`, `rfid`, `mail`, `phone`, `group`, `open_time`, `sound_file`, `sound_repeat`, `sound_on_rfid_open`, `active_from`, `expire_at`, `comment` FROM `users` WHERE rfid is NOT NULL AND rfid != '' AND active = 1 AND (`active_from` is NULL OR (`active_from` < NOW())) AND (`expire_at` is NULL OR (NOW() < `expire_at`)) ORDER BY rfid LIMIT 100]);
 					$sth->execute; # or die $!;
 					while ($_ = $sth->fetchrow_hashref) {
@@ -73,7 +73,7 @@ sub update_poller {
 											"$$_{'rfid'}", \
 											"$$_{'mail'}", \
 											"$$_{'phone'}", \
-											"] . GROUP . qq[", \
+											"$group", \
 											"$$_{'open_time'}", \
 											"$$_{'sound_file'}", \
 											"$$_{'sound_repeat'}", \
@@ -93,6 +93,49 @@ sub update_poller {
 			$dbh->disconnect;
 		}
 		usleep(500_000);	# 0.5 sec
+	}
+}
+
+sub get_defaults {
+	my $pref_name = shift;
+	my $dbh_thr = LockServer::Db->my_connect or warn $!;
+	my $sth_thr = $dbh_thr->prepare(qq[SELECT `value` FROM default_prefs WHERE `name` = ] . $dbh_thr->quote($pref_name));
+	if ($sth_thr->execute) {
+		my ($pref) = $sth_thr->fetchrow;
+		$sth_thr->finish;
+		$dbh_thr->disconnect;
+		return $pref;
+	}
+	else {
+		$sth_thr->finish;
+		$dbh_thr->disconnect;
+		syslog('info', "$!");
+		return undef;
+	}
+}
+
+sub get_user_defaults {
+	my ($user, $pref_name) = @_;
+	my $dbh_thr = LockServer::Db->my_connect or warn $!;
+	my $sth_thr = $dbh_thr->prepare(qq[SELECT `$pref_name` FROM users WHERE username = ] . $dbh_thr->quote($user));
+	if ($sth_thr->execute) {
+		my ($pref) = $sth_thr->fetchrow;
+		$sth_thr->finish;
+		$dbh_thr->disconnect;
+		if (defined $pref) {
+			return $pref;
+		}
+		else {
+			$pref = get_defaults($pref_name);
+			syslog('info', "no user pref $pref_name for $user, using default: $pref");
+			return $pref;
+		}
+	}
+	else {
+		$sth_thr->finish;
+		$dbh_thr->disconnect;
+		syslog('info', "$!");
+		return undef;
 	}
 }
 
