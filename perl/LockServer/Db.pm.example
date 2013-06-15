@@ -4,10 +4,16 @@ use strict;
 use warnings;
 use DBI;
 
-use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', 'my_password';
+use constant REMOTE_HOST => 'a.b.c.d';
+use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', 'password';
+use constant MY_DBI_REMOTE => 'DBI:mysql:database=lock_server;host=' . REMOTE_HOST . ';port=3306', 'lock_server', 'password';
 
 sub my_connect {
 	return DBI->connect(MY_DBI, { mysql_auto_reconnect => 1 }) or die $!;
+}
+
+sub my_connect_remote {
+	return DBI->connect(MY_DBI_REMOTE, { mysql_auto_reconnect => 1 }) or die $!;
 }
 
 1;
