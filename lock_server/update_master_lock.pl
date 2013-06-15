@@ -17,6 +17,9 @@ syslog('info', "starting...");
 
 $SIG{INT} = \&stop_lock_server;
 
+my $force_update = 0;
+$SIG{USR1} = sub {syslog('info', "Forced update..."); $force_update = 1};
+
 syslog('info', "master lock updater started...");
 
 update_poller();
@@ -54,7 +57,7 @@ sub update_poller {
 
 			$digest->{'current'} = $md5->hexdigest;
 
-			if ($digest->{'current'} ne $digest->{'last'}) {
+			if ($force_update || ($digest->{'current'} ne $digest->{'last'})) {
 				# something changed...
 				syslog('info', "updating users for main lock access");
 				if ($dbh_remote = LockServer::Db->my_connect_remote) {
@@ -89,6 +92,7 @@ sub update_poller {
 				$dbh_remote->disconnect;
 
 				$digest->{'last'} = $digest->{'current'};
+				$force_update = 0;
 			}
 			$dbh->disconnect;
 		}
