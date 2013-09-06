@@ -56,6 +56,7 @@ while (1) {
 	}
 	else {
 		# we got a rfid tag...
+		$rfid =~ s/.*([\dabcdef]{10}).*/$1/i;
 		my $client = AnyEvent::JSONRPC::TCP::Client->new(
 			host => '127.0.0.1',
 			port => $RPC_PORT,
