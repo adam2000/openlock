@@ -3,6 +3,7 @@ package LockServer::Db;
 use strict;
 use warnings;
 use DBI;
+use Sys::Syslog;
 
 use constant REMOTE_HOST => 'a.b.c.d';
 use constant MY_DBI => 'DBI:mysql:database=lock_server;host=127.0.0.1;port=3306', 'lock_server', 'password';
@@ -13,7 +14,18 @@ sub my_connect {
 }
 
 sub my_connect_remote {
-	return DBI->connect(MY_DBI_REMOTE, { mysql_auto_reconnect => 1 }) or die $!;
+	my $dbh;
+	openlog($0, "ndelay,pid", "local0");
+	eval {
+		$dbh = DBI->connect(MY_DBI_REMOTE, { mysql_auto_reconnect => 1, RaiseError => 1 });
+	};
+	if ($@) {
+		syslog('info', "cant connect to database: " . $!);
+		return undef;
+	}
+	else {
+		return $dbh;
+	}
 }
 
 1;
