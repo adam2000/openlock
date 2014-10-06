@@ -359,7 +359,6 @@
                 <td class="default">&nbsp;</td>
               </tr>
  [$ if $is_admin $]
- <!--
              <tr>
               	<td class="label"><nobr>Tech-room</nobr></td>
 
@@ -371,7 +370,6 @@
 	[$ endif $]
 							 </td>
               </tr>
--->
 [$ endif $]
 	        </table></td>
 		    <td align="right" valign="top"><table>
